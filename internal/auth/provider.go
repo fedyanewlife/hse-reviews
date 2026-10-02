@@ -12,13 +12,22 @@ import (
 	"hse-reviews/internal/config"
 )
 
+type UserStore interface {
+	UpsertUser(ctx context.Context, issuer, subject string) (int32, error)
+}
+
 type Provider struct {
 	oauthConfig  oauth2.Config
 	verifier     *oidc.IDTokenVerifier
 	cookieSecure bool
+	userStore    UserStore
 }
 
-func NewProvider(ctx context.Context, cfg config.Keycloak) (*Provider, error) {
+func NewProvider(ctx context.Context, cfg config.Keycloak, userStore UserStore) (*Provider, error) {
+	if userStore == nil {
+		return nil, errors.New("user store is required")
+	}
+
 	parsedRedirectURL, err := url.Parse(cfg.OAuthRedirectURL)
 	if err != nil || parsedRedirectURL.Host == "" ||
 		(parsedRedirectURL.Scheme != "http" && parsedRedirectURL.Scheme != "https") {
@@ -40,5 +49,6 @@ func NewProvider(ctx context.Context, cfg config.Keycloak) (*Provider, error) {
 		},
 		verifier:     provider.Verifier(&oidc.Config{ClientID: cfg.ClientID}),
 		cookieSecure: parsedRedirectURL.Scheme == "https",
+		userStore:    userStore,
 	}, nil
 }

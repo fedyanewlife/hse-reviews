@@ -28,7 +28,7 @@ func Run() error {
 	defer db.Close()
 
 	authCtx, cancelAuth := context.WithTimeout(context.Background(), 5*time.Second)
-	authProvider, err := auth.NewProvider(authCtx, cfg.Keycloak)
+	authProvider, err := auth.NewProvider(authCtx, cfg.Keycloak, db)
 	cancelAuth()
 	if err != nil {
 		return fmt.Errorf("auth: %w", err)

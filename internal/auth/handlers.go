@@ -77,6 +77,11 @@ func (p *Provider) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, err := p.userStore.UpsertUser(r.Context(), token.Issuer, token.Subject); err != nil {
+		http.Error(w, "failed to save user", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]string{
 		"status":  "ok",

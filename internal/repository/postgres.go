@@ -39,3 +39,18 @@ func NewPostgres(ctx context.Context, cfg config.DB) (*Postgres, error) {
 func (p *Postgres) Close() {
 	p.pool.Close()
 }
+
+func (p *Postgres) UpsertUser(ctx context.Context, issuer, subject string) (int32, error) {
+	const query = `
+		INSERT INTO users (issuer, subject)
+		VALUES ($1, $2)
+		ON CONFLICT (issuer, subject)
+		DO UPDATE SET last_login_at = NOW()
+		RETURNING id`
+
+	var id int32
+	if err := p.pool.QueryRow(ctx, query, issuer, subject).Scan(&id); err != nil {
+		return 0, fmt.Errorf("upsert user: %w", err)
+	}
+	return id, nil
+}
