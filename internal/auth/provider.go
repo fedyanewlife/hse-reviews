@@ -18,27 +18,27 @@ type Provider struct {
 	cookieSecure bool
 }
 
-func NewProvider(ctx context.Context, cfg *config.Config) (*Provider, error) {
+func NewProvider(ctx context.Context, cfg config.Keycloak) (*Provider, error) {
 	parsedRedirectURL, err := url.Parse(cfg.OAuthRedirectURL)
 	if err != nil || parsedRedirectURL.Host == "" ||
 		(parsedRedirectURL.Scheme != "http" && parsedRedirectURL.Scheme != "https") {
 		return nil, errors.New("OAUTH_REDIRECT_URL must be absolute HTTP(S)")
 	}
 
-	provider, err := oidc.NewProvider(ctx, cfg.KeycloakIssuerURL)
+	provider, err := oidc.NewProvider(ctx, cfg.IssuerURL)
 	if err != nil {
 		return nil, fmt.Errorf("init oidc provider: %w", err)
 	}
 
 	return &Provider{
 		oauthConfig: oauth2.Config{
-			ClientID:     cfg.KeycloakClientID,
-			ClientSecret: cfg.KeycloakClientSecret,
+			ClientID:     cfg.ClientID,
+			ClientSecret: cfg.ClientSecret,
 			RedirectURL:  cfg.OAuthRedirectURL,
 			Endpoint:     provider.Endpoint(),
 			Scopes:       []string{oidc.ScopeOpenID},
 		},
-		verifier:     provider.Verifier(&oidc.Config{ClientID: cfg.KeycloakClientID}),
+		verifier:     provider.Verifier(&oidc.Config{ClientID: cfg.ClientID}),
 		cookieSecure: parsedRedirectURL.Scheme == "https",
 	}, nil
 }

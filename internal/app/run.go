@@ -10,6 +10,7 @@ import (
 
 	"hse-reviews/internal/auth"
 	"hse-reviews/internal/config"
+	"hse-reviews/internal/repository"
 )
 
 func Run() error {
@@ -18,12 +19,19 @@ func Run() error {
 		return fmt.Errorf("config: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	authProvider, err := auth.NewProvider(ctx, cfg)
+	dbCtx, cancelDB := context.WithTimeout(context.Background(), 5*time.Second)
+	db, err := repository.NewPostgres(dbCtx, cfg.DB)
+	cancelDB()
 	if err != nil {
-		return err
+		return fmt.Errorf("repository: %w", err)
+	}
+	defer db.Close()
+
+	authCtx, cancelAuth := context.WithTimeout(context.Background(), 5*time.Second)
+	authProvider, err := auth.NewProvider(authCtx, cfg.Keycloak)
+	cancelAuth()
+	if err != nil {
+		return fmt.Errorf("auth: %w", err)
 	}
 
 	http.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
