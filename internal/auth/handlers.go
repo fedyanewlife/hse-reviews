@@ -2,10 +2,12 @@ package auth
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"golang.org/x/oauth2"
 )
@@ -15,9 +17,9 @@ func (p *Provider) Login(w http.ResponseWriter, r *http.Request) {
 	nonce := randomValue()
 	codeVerifier := oauth2.GenerateVerifier()
 
-	p.setCookie(w, stateCookieName, state)
-	p.setCookie(w, nonceCookieName, nonce)
-	p.setCookie(w, codeVerifierCookieName, codeVerifier)
+	p.setFlowCookie(w, stateCookieName, state)
+	p.setFlowCookie(w, nonceCookieName, nonce)
+	p.setFlowCookie(w, codeVerifierCookieName, codeVerifier)
 
 	redirectURL := p.oauthConfig.AuthCodeURL(
 		state,
@@ -28,9 +30,9 @@ func (p *Provider) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Provider) Callback(w http.ResponseWriter, r *http.Request) {
-	state, stateErr := p.getCookie(r, stateCookieName)
-	nonce, nonceErr := p.getCookie(r, nonceCookieName)
-	codeVerifier, verifierErr := p.getCookie(r, codeVerifierCookieName)
+	state, stateErr := p.getFlowCookie(r, stateCookieName)
+	nonce, nonceErr := p.getFlowCookie(r, nonceCookieName)
+	codeVerifier, verifierErr := p.getFlowCookie(r, codeVerifierCookieName)
 
 	queryState := r.URL.Query().Get("state")
 	if stateErr != nil || nonceErr != nil || verifierErr != nil ||
@@ -39,9 +41,9 @@ func (p *Provider) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.clearCookie(w, stateCookieName)
-	p.clearCookie(w, nonceCookieName)
-	p.clearCookie(w, codeVerifierCookieName)
+	p.clearFlowCookie(w, stateCookieName)
+	p.clearFlowCookie(w, nonceCookieName)
+	p.clearFlowCookie(w, codeVerifierCookieName)
 
 	if errParam := r.URL.Query().Get("error"); errParam != "" {
 		http.Error(w, "authentication failed", http.StatusBadRequest)
@@ -60,13 +62,13 @@ func (p *Provider) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
+	idToken, ok := oauth2Token.Extra("id_token").(string)
 	if !ok {
 		http.Error(w, "missing id_token", http.StatusBadGateway)
 		return
 	}
 
-	token, err := p.verifier.Verify(r.Context(), rawIDToken)
+	token, err := p.verifier.Verify(r.Context(), idToken)
 	if err != nil {
 		http.Error(w, "token verification failed", http.StatusBadGateway)
 		return
@@ -77,10 +79,21 @@ func (p *Provider) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := p.userStore.UpsertUser(r.Context(), token.Issuer, token.Subject); err != nil {
+	userID, err := p.authStore.UpsertUser(r.Context(), token.Issuer, token.Subject)
+	if err != nil {
 		http.Error(w, "failed to save user", http.StatusInternalServerError)
 		return
 	}
+
+	sessionToken := randomValue()
+	sessionTokenHash := sha256.Sum256([]byte(sessionToken))
+	expiresAt := time.Now().Add(sessionCookieTTL)
+	if err := p.authStore.CreateSession(r.Context(), userID, sessionTokenHash[:], expiresAt); err != nil {
+		http.Error(w, "failed to create session", http.StatusInternalServerError)
+		return
+	}
+
+	p.setSessionCookie(w, sessionToken)
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]string{

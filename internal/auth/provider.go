@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
@@ -12,20 +13,21 @@ import (
 	"hse-reviews/internal/config"
 )
 
-type UserStore interface {
+type AuthStore interface {
 	UpsertUser(ctx context.Context, issuer, subject string) (int32, error)
+	CreateSession(ctx context.Context, userID int32, tokenHash []byte, expiresAt time.Time) error
 }
 
 type Provider struct {
 	oauthConfig  oauth2.Config
 	verifier     *oidc.IDTokenVerifier
 	cookieSecure bool
-	userStore    UserStore
+	authStore    AuthStore
 }
 
-func NewProvider(ctx context.Context, cfg config.Keycloak, userStore UserStore) (*Provider, error) {
-	if userStore == nil {
-		return nil, errors.New("user store is required")
+func NewProvider(ctx context.Context, cfg config.Keycloak, authStore AuthStore) (*Provider, error) {
+	if authStore == nil {
+		return nil, errors.New("auth store is required")
 	}
 
 	parsedRedirectURL, err := url.Parse(cfg.OAuthRedirectURL)
@@ -49,6 +51,6 @@ func NewProvider(ctx context.Context, cfg config.Keycloak, userStore UserStore) 
 		},
 		verifier:     provider.Verifier(&oidc.Config{ClientID: cfg.ClientID}),
 		cookieSecure: parsedRedirectURL.Scheme == "https",
-		userStore:    userStore,
+		authStore:    authStore,
 	}, nil
 }

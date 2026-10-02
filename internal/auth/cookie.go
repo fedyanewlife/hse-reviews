@@ -10,25 +10,40 @@ const (
 	stateCookieName        = "state"
 	nonceCookieName        = "nonce"
 	codeVerifierCookieName = "code_verifier"
+	sessionCookieName      = "session"
 
-	cookiePath = "/auth"
+	flowCookiePath    = "/auth"
+	sessionCookiePath = "/"
 
-	cookieTTL = 5 * time.Minute
+	flowCookieTTL    = 5 * time.Minute
+	sessionCookieTTL = 5 * time.Minute
 )
 
-func (p *Provider) setCookie(w http.ResponseWriter, name, value string) {
+func (p *Provider) setFlowCookie(w http.ResponseWriter, name, value string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     name,
 		Value:    value,
-		Path:     cookiePath,
-		MaxAge:   int(cookieTTL.Seconds()),
+		Path:     flowCookiePath,
+		MaxAge:   int(flowCookieTTL.Seconds()),
 		HttpOnly: true,
 		Secure:   p.cookieSecure,
 		SameSite: http.SameSiteLaxMode,
 	})
 }
 
-func (p *Provider) getCookie(r *http.Request, name string) (string, error) {
+func (p *Provider) setSessionCookie(w http.ResponseWriter, value string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    value,
+		Path:     sessionCookiePath,
+		MaxAge:   int(sessionCookieTTL.Seconds()),
+		HttpOnly: true,
+		Secure:   p.cookieSecure,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+func (p *Provider) getFlowCookie(r *http.Request, name string) (string, error) {
 	cookie, err := r.Cookie(name)
 	if err != nil || cookie.Value == "" {
 		return "", fmt.Errorf("missing authentication cookie: %s", name)
@@ -36,11 +51,11 @@ func (p *Provider) getCookie(r *http.Request, name string) (string, error) {
 	return cookie.Value, nil
 }
 
-func (p *Provider) clearCookie(w http.ResponseWriter, name string) {
+func (p *Provider) clearFlowCookie(w http.ResponseWriter, name string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     name,
 		Value:    "",
-		Path:     cookiePath,
+		Path:     flowCookiePath,
 		MaxAge:   -1,
 		HttpOnly: true,
 		Secure:   p.cookieSecure,

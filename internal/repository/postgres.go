@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -53,4 +54,15 @@ func (p *Postgres) UpsertUser(ctx context.Context, issuer, subject string) (int3
 		return 0, fmt.Errorf("upsert user: %w", err)
 	}
 	return id, nil
+}
+
+func (p *Postgres) CreateSession(ctx context.Context, userID int32, tokenHash []byte, expiresAt time.Time) error {
+	const query = `
+		INSERT INTO sessions (session_token_hash, user_id, expires_at)
+		VALUES ($1, $2, $3)`
+
+	if _, err := p.pool.Exec(ctx, query, tokenHash, userID, expiresAt); err != nil {
+		return fmt.Errorf("create session: %w", err)
+	}
+	return nil
 }
