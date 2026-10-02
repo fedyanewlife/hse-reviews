@@ -103,6 +103,20 @@ func (p *Provider) Callback(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (p *Provider) Logout(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie(sessionCookieName)
+	if err == nil && cookie.Value != "" {
+		tokenHash := sha256.Sum256([]byte(cookie.Value))
+		if err := p.authStore.DeleteSession(r.Context(), tokenHash); err != nil {
+			http.Error(w, "failed to delete session", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	p.clearSessionCookie(w)
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func randomValue() string {
 	value := make([]byte, 32)
 	rand.Read(value)

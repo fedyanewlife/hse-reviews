@@ -85,3 +85,14 @@ func (p *Postgres) FindUserIDBySessionHash(ctx context.Context, tokenHash [32]by
 	}
 	return userID, true, nil
 }
+
+func (p *Postgres) DeleteSession(ctx context.Context, tokenHash [32]byte) error {
+	const query = `
+		DELETE FROM sessions
+		WHERE session_token_hash = $1`
+
+	if _, err := p.pool.Exec(ctx, query, tokenHash[:]); err != nil {
+		return fmt.Errorf("delete session: %w", err)
+	}
+	return nil
+}

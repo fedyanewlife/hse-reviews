@@ -40,6 +40,7 @@ func Run() error {
 	})
 	http.HandleFunc("GET /auth/login", authProvider.Login)
 	http.HandleFunc("GET /auth/callback", authProvider.Callback)
+	http.HandleFunc("POST /auth/logout", authProvider.Logout)
 	http.Handle("GET /me", authProvider.RequireSession(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := auth.UserIDFromContext(r.Context())
 		if !ok {
