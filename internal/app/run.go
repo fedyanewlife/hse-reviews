@@ -40,6 +40,16 @@ func Run() error {
 	})
 	http.HandleFunc("GET /auth/login", authProvider.Login)
 	http.HandleFunc("GET /auth/callback", authProvider.Callback)
+	http.Handle("GET /me", authProvider.RequireSession(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := auth.UserIDFromContext(r.Context())
+		if !ok {
+			http.Error(w, "authentication required", http.StatusUnauthorized)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]int32{"user_id": userID})
+	})))
 
 	log.Println("Starting server on localhost:8080")
 	return http.ListenAndServe("localhost:8080", nil)

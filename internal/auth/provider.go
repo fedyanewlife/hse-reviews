@@ -15,7 +15,8 @@ import (
 
 type AuthStore interface {
 	UpsertUser(ctx context.Context, issuer, subject string) (int32, error)
-	CreateSession(ctx context.Context, userID int32, tokenHash []byte, expiresAt time.Time) error
+	CreateSession(ctx context.Context, userID int32, tokenHash [32]byte, expiresAt time.Time) error
+	FindUserIDBySessionHash(ctx context.Context, tokenHash [32]byte) (int32, bool, error)
 }
 
 type Provider struct {

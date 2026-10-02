@@ -88,7 +88,7 @@ func (p *Provider) Callback(w http.ResponseWriter, r *http.Request) {
 	sessionToken := randomValue()
 	sessionTokenHash := sha256.Sum256([]byte(sessionToken))
 	expiresAt := time.Now().Add(sessionCookieTTL)
-	if err := p.authStore.CreateSession(r.Context(), userID, sessionTokenHash[:], expiresAt); err != nil {
+	if err := p.authStore.CreateSession(r.Context(), userID, sessionTokenHash, expiresAt); err != nil {
 		http.Error(w, "failed to create session", http.StatusInternalServerError)
 		return
 	}

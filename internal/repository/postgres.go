@@ -2,11 +2,13 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"hse-reviews/internal/config"
@@ -56,13 +58,30 @@ func (p *Postgres) UpsertUser(ctx context.Context, issuer, subject string) (int3
 	return id, nil
 }
 
-func (p *Postgres) CreateSession(ctx context.Context, userID int32, tokenHash []byte, expiresAt time.Time) error {
+func (p *Postgres) CreateSession(ctx context.Context, userID int32, tokenHash [32]byte, expiresAt time.Time) error {
 	const query = `
 		INSERT INTO sessions (session_token_hash, user_id, expires_at)
 		VALUES ($1, $2, $3)`
 
-	if _, err := p.pool.Exec(ctx, query, tokenHash, userID, expiresAt); err != nil {
+	if _, err := p.pool.Exec(ctx, query, tokenHash[:], userID, expiresAt); err != nil {
 		return fmt.Errorf("create session: %w", err)
 	}
 	return nil
+}
+
+func (p *Postgres) FindUserIDBySessionHash(ctx context.Context, tokenHash [32]byte) (int32, bool, error) {
+	const query = `
+		SELECT user_id
+		FROM sessions
+		WHERE session_token_hash = $1
+		  AND expires_at > NOW()`
+
+	var userID int32
+	if err := p.pool.QueryRow(ctx, query, tokenHash[:]).Scan(&userID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, false, nil
+		}
+		return 0, false, fmt.Errorf("find session user: %w", err)
+	}
+	return userID, true, nil
 }

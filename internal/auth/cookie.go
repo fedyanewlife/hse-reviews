@@ -62,3 +62,15 @@ func (p *Provider) clearFlowCookie(w http.ResponseWriter, name string) {
 		SameSite: http.SameSiteLaxMode,
 	})
 }
+
+func (p *Provider) clearSessionCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    "",
+		Path:     sessionCookiePath,
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   p.cookieSecure,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
