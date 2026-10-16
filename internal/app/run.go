@@ -10,6 +10,7 @@ import (
 
 	"hse-reviews/internal/auth"
 	"hse-reviews/internal/config"
+	"hse-reviews/internal/minors"
 	"hse-reviews/internal/repository"
 )
 
@@ -34,6 +35,8 @@ func Run() error {
 		return fmt.Errorf("auth: %w", err)
 	}
 
+	minorsHandler := minors.NewHandler(db.Pool())
+
 	http.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
@@ -51,6 +54,7 @@ func Run() error {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]int32{"user_id": userID})
 	})))
+	http.Handle("GET /minors", authProvider.RequireSession(http.HandlerFunc(minorsHandler.GetMinors)))
 
 	log.Println("Starting server on localhost:8080")
 	return http.ListenAndServe("localhost:8080", nil)
