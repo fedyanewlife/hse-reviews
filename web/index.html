@@ -11,15 +11,25 @@
     <header class="site-header">
         <h1>ОтзоВышка</h1>
         <div class="auth-controls">
-            <a id="login-link" class="auth-button" href="/auth/login" hidden>Войти</a>
-            <button id="logout-button" class="auth-button" type="button" hidden>Выйти</button>
+            <a id="login-link" class="button" href="/auth/login" hidden>Войти</a>
+            <button id="logout-button" class="button" type="button" hidden>Выйти</button>
         </div>
     </header>
     <p id="auth-message" class="auth-message" role="status">Проверяем вход…</p>
-    <main id="catalog" class="catalog" hidden>
-        <h2>Каталог майноров</h2>
-        <p id="catalog-message" class="catalog-message" role="status"></p>
-        <ul id="minors-list" class="minors-list"></ul>
+    <main id="content" class="content" hidden>
+        <section id="catalog">
+            <h2 id="catalog-title" tabindex="-1">Каталог майноров</h2>
+            <p id="catalog-message" class="catalog-message" role="status"></p>
+            <ul id="minors-list" class="minors-list"></ul>
+        </section>
+        <section id="minor-details" hidden>
+            <button id="back-to-catalog" class="button" type="button">Назад к каталогу</button>
+            <h2 id="minor-name" tabindex="-1"></h2>
+            <a id="minor-link" target="_blank" rel="noopener noreferrer" hidden>Страница на сайте ВШЭ</a>
+            <h3>Опубликованные отзывы</h3>
+            <p id="minor-message" class="minor-message" role="status"></p>
+            <ul id="reviews-list" class="reviews-list"></ul>
+        </section>
     </main>
 </body>
 </html>

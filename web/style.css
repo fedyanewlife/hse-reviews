@@ -25,7 +25,7 @@ body {
     gap: 12px;
 }
 
-.auth-button {
+.button {
     padding: 8px 16px;
     border: 1px solid #1f2937;
     border-radius: 6px;
@@ -36,11 +36,11 @@ body {
     cursor: pointer;
 }
 
-.auth-button:hover {
+.button:hover {
     background-color: #f3f4f6;
 }
 
-.auth-button:disabled {
+.button:disabled {
     opacity: 0.6;
     cursor: wait;
 }
@@ -50,20 +50,22 @@ body {
 }
 
 .auth-message:empty,
-.catalog-message:empty {
+.catalog-message:empty,
+.minor-message:empty {
     display: none;
 }
 
-.catalog {
+.content {
     max-width: 960px;
     padding: 24px;
 }
 
-.catalog h2 {
+#catalog h2 {
     margin-top: 0;
 }
 
-.minors-list {
+.minors-list,
+.reviews-list {
     margin: 0;
     padding: 0;
     list-style: none;
@@ -80,6 +82,36 @@ body {
     font-size: 18px;
 }
 
-.minors-list a {
+.content a {
     color: #1d4ed8;
+}
+
+.minor-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+#minor-name {
+    overflow-wrap: anywhere;
+}
+
+.review {
+    padding: 16px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.review-ratings {
+    padding-left: 24px;
+}
+
+.review h4 {
+    margin-bottom: 8px;
+}
+
+.review-text {
+    margin-top: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
