@@ -55,6 +55,7 @@ func Run() error {
 		_ = json.NewEncoder(w).Encode(map[string]int32{"user_id": userID})
 	})))
 	http.Handle("GET /minors", authProvider.RequireSession(http.HandlerFunc(minorsHandler.GetMinors)))
+	http.Handle("GET /minors/{id}", authProvider.RequireSession(http.HandlerFunc(minorsHandler.GetMinor)))
 
 	log.Println("Starting server on localhost:8080")
 	return http.ListenAndServe("localhost:8080", nil)
