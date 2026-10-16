@@ -6,6 +6,11 @@ body {
 }
 
 .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
     padding: 20px 24px;
     border-bottom: 1px solid #e5e7eb;
 }
@@ -13,4 +18,37 @@ body {
 .site-header h1 {
     margin: 0;
     font-size: 24px;
+}
+
+.auth-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.auth-button {
+    padding: 8px 16px;
+    border: 1px solid #1f2937;
+    border-radius: 6px;
+    font: inherit;
+    color: inherit;
+    background-color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.auth-button:hover {
+    background-color: #f3f4f6;
+}
+
+.auth-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.auth-message {
+    margin: 16px 24px;
+}
+
+.auth-message:empty {
+    display: none;
 }

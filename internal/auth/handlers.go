@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -95,12 +94,7 @@ func (p *Provider) Callback(w http.ResponseWriter, r *http.Request) {
 
 	p.setSessionCookie(w, sessionToken)
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(map[string]string{
-		"status":  "ok",
-		"issuer":  token.Issuer,
-		"subject": token.Subject,
-	})
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (p *Provider) Logout(w http.ResponseWriter, r *http.Request) {

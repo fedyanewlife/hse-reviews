@@ -5,10 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ОтзоВышка</title>
     <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
 </head>
 <body>
     <header class="site-header">
         <h1>ОтзоВышка</h1>
+        <div class="auth-controls">
+            <a id="login-link" class="auth-button" href="/auth/login" hidden>Войти</a>
+            <button id="logout-button" class="auth-button" type="button" hidden>Выйти</button>
+        </div>
     </header>
+    <p id="auth-message" class="auth-message" role="status">Проверяем вход…</p>
 </body>
 </html>
