@@ -27,6 +27,90 @@
             <button id="back-to-catalog" class="button" type="button">Назад к каталогу</button>
             <h2 id="minor-name" tabindex="-1"></h2>
             <a id="minor-link" target="_blank" rel="noopener noreferrer" hidden>Страница на сайте ВШЭ</a>
+            <button id="write-review-button" class="button" type="button" hidden>Оставить отзыв</button>
+            <p id="review-form-message" class="review-form-message" role="status"></p>
+            <form id="review-form" hidden>
+                <fieldset id="review-fields">
+                    <legend>Ваш отзыв</legend>
+                    <p class="form-hint">После отправки отзыв попадёт на проверку. После одобрения он появится в опубликованных отзывах без вашего имени.</p>
+                    <div class="form-field">
+                        <label for="completion_year">Год окончания майнора (необязательно)</label>
+                        <input id="completion_year" name="completion_year" type="number" min="2025" step="1">
+                    </div>
+                    <p id="rating-hint" class="form-hint">Все пять оценок обязательны. Выберите значение от 1 до 5.</p>
+                    <div class="form-field">
+                        <label for="difficulty_rating">Сложность</label>
+                        <select id="difficulty_rating" name="difficulty_rating" aria-describedby="rating-hint" required>
+                            <option value="">Выберите оценку</option>
+                            <option value="1">1 — очень легко</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5 — очень сложно</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="workload_rating">Нагрузка</label>
+                        <select id="workload_rating" name="workload_rating" aria-describedby="rating-hint" required>
+                            <option value="">Выберите оценку</option>
+                            <option value="1">1 — очень низкая нагрузка</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5 — очень высокая нагрузка</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="interest_rating">Интерес</label>
+                        <select id="interest_rating" name="interest_rating" aria-describedby="rating-hint" required>
+                            <option value="">Выберите оценку</option>
+                            <option value="1">1 — совсем не интересно</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5 — очень интересно</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="usefulness_rating">Полезность</label>
+                        <select id="usefulness_rating" name="usefulness_rating" aria-describedby="rating-hint" required>
+                            <option value="">Выберите оценку</option>
+                            <option value="1">1 — совсем не полезно</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5 — очень полезно</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="recommendation_rating">Готовность рекомендовать майнор</label>
+                        <select id="recommendation_rating" name="recommendation_rating" aria-describedby="rating-hint" required>
+                            <option value="">Выберите оценку</option>
+                            <option value="1">1 — точно не рекомендую</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5 — точно рекомендую</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="experience_text">Ваш опыт обучения (необязательно)</label>
+                        <textarea id="experience_text" name="experience_text" rows="4"></textarea>
+                    </div>
+                    <div class="form-field">
+                        <label for="selection_advice">Совет тем, кто выбирает майнор (необязательно)</label>
+                        <textarea id="selection_advice" name="selection_advice" rows="4"></textarea>
+                    </div>
+                    <label class="consent-label" for="review-consent">
+                        <input id="review-consent" type="checkbox" required>
+                        <span>Согласен на анонимную публикацию отзыва.</span>
+                    </label>
+                    <div class="form-actions">
+                        <button id="submit-review-button" class="button" type="submit">Отправить отзыв</button>
+                        <button id="cancel-review-button" class="button" type="button">Отмена</button>
+                    </div>
+                </fieldset>
+            </form>
             <h3>Опубликованные отзывы</h3>
             <p id="minor-message" class="minor-message" role="status"></p>
             <ul id="reviews-list" class="reviews-list"></ul>

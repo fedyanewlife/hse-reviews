@@ -53,6 +53,7 @@ body {
 .auth-message:empty,
 .catalog-message:empty,
 .minor-message:empty,
+.review-form-message:empty,
 .my-reviews-message:empty {
     display: none;
 }
@@ -97,6 +98,76 @@ body {
 
 #minor-name {
     overflow-wrap: anywhere;
+}
+
+#write-review-button:not([hidden]) {
+    display: block;
+    margin-top: 16px;
+}
+
+#review-form {
+    max-width: 640px;
+    margin: 20px 0;
+}
+
+#review-fields {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+}
+
+#review-fields legend {
+    padding: 0 6px;
+    font-weight: 600;
+}
+
+.form-hint {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.form-field {
+    display: grid;
+    gap: 6px;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid #9ca3af;
+    border-radius: 6px;
+    font: inherit;
+    color: inherit;
+    background-color: #fff;
+}
+
+.form-field textarea {
+    resize: vertical;
+}
+
+.consent-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+}
+
+.consent-label input {
+    margin-top: 5px;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .review {
