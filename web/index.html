@@ -12,6 +12,7 @@
         <h1>ОтзоВышка</h1>
         <div class="auth-controls">
             <a id="login-link" class="button" href="/auth/login" hidden>Войти</a>
+            <button id="my-reviews-button" class="button" type="button" hidden>Мои отзывы</button>
             <button id="logout-button" class="button" type="button" hidden>Выйти</button>
         </div>
     </header>
@@ -29,6 +30,12 @@
             <h3>Опубликованные отзывы</h3>
             <p id="minor-message" class="minor-message" role="status"></p>
             <ul id="reviews-list" class="reviews-list"></ul>
+        </section>
+        <section id="my-reviews" hidden>
+            <button id="my-reviews-back" class="button" type="button">Назад к каталогу</button>
+            <h2 id="my-reviews-title" tabindex="-1">Мои отзывы</h2>
+            <p id="my-reviews-message" class="my-reviews-message" role="status"></p>
+            <ul id="my-reviews-list" class="reviews-list"></ul>
         </section>
     </main>
 </body>

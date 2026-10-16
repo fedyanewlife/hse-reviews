@@ -22,6 +22,7 @@ body {
 
 .auth-controls {
     display: flex;
+    flex-wrap: wrap;
     gap: 12px;
 }
 
@@ -51,7 +52,8 @@ body {
 
 .auth-message:empty,
 .catalog-message:empty,
-.minor-message:empty {
+.minor-message:empty,
+.my-reviews-message:empty {
     display: none;
 }
 
@@ -104,6 +106,15 @@ body {
 
 .review-ratings {
     padding-left: 24px;
+}
+
+.review h3 {
+    margin-top: 0;
+    overflow-wrap: anywhere;
+}
+
+.review-status {
+    font-weight: 600;
 }
 
 .review h4 {

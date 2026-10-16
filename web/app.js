@@ -1,5 +1,6 @@
 const loginLink = document.querySelector("#login-link");
 const logoutButton = document.querySelector("#logout-button");
+const myReviewsButton = document.querySelector("#my-reviews-button");
 const authMessage = document.querySelector("#auth-message");
 const content = document.querySelector("#content");
 const catalog = document.querySelector("#catalog");
@@ -12,19 +13,27 @@ const minorName = document.querySelector("#minor-name");
 const minorLink = document.querySelector("#minor-link");
 const minorMessage = document.querySelector("#minor-message");
 const reviewsList = document.querySelector("#reviews-list");
+const myReviews = document.querySelector("#my-reviews");
+const myReviewsBackButton = document.querySelector("#my-reviews-back");
+const myReviewsTitle = document.querySelector("#my-reviews-title");
+const myReviewsMessage = document.querySelector("#my-reviews-message");
+const myReviewsList = document.querySelector("#my-reviews-list");
 
 let isAuthenticated = false;
-let minorRequestId = 0;
+let viewRequestId = 0;
+let minorNames = new Map();
 
 function setAuthState(authenticated) {
     isAuthenticated = authenticated;
     loginLink.hidden = isAuthenticated;
     logoutButton.hidden = !isAuthenticated;
+    myReviewsButton.hidden = !isAuthenticated;
     content.hidden = !isAuthenticated;
 
     if (!isAuthenticated) {
         minorsList.replaceChildren();
         catalogMessage.textContent = "";
+        minorNames.clear();
         showCatalog();
     }
 }
@@ -86,6 +95,9 @@ async function loadCatalog() {
             return;
         }
 
+        minorNames = new Map(data.items.map(minor => [minor.id, minor.name]));
+        updateMyReviewNames();
+
         for (const minor of data.items) {
             const item = document.createElement("li");
             const name = document.createElement("h3");
@@ -120,22 +132,25 @@ async function loadCatalog() {
 }
 
 function showCatalog() {
-    minorRequestId++;
+    viewRequestId++;
     catalog.hidden = false;
     minorDetails.hidden = true;
+    myReviews.hidden = true;
     minorName.textContent = "";
     minorLink.hidden = true;
     minorLink.removeAttribute("href");
     minorMessage.textContent = "";
     reviewsList.replaceChildren();
+    myReviewsList.replaceChildren();
+    myReviewsMessage.textContent = "";
 
     if (isAuthenticated) {
         catalogTitle.focus();
     }
 }
 
-function isCurrentMinorRequest(requestId) {
-    return isAuthenticated && requestId === minorRequestId;
+function isCurrentViewRequest(requestId) {
+    return isAuthenticated && requestId === viewRequestId;
 }
 
 async function openMinor(id) {
@@ -143,9 +158,10 @@ async function openMinor(id) {
         return;
     }
 
-    const requestId = ++minorRequestId;
+    const requestId = ++viewRequestId;
     catalog.hidden = true;
     minorDetails.hidden = false;
+    myReviews.hidden = true;
     minorName.textContent = "Майнор";
     minorName.focus();
     minorLink.hidden = true;
@@ -156,7 +172,7 @@ async function openMinor(id) {
     try {
         const response = await fetch(`/minors/${id}`, { cache: "no-store" });
 
-        if (handleUnauthorized(response) || !isCurrentMinorRequest(requestId)) {
+        if (handleUnauthorized(response) || !isCurrentViewRequest(requestId)) {
             return;
         }
 
@@ -171,7 +187,7 @@ async function openMinor(id) {
 
         const minor = await response.json();
 
-        if (!isCurrentMinorRequest(requestId)) {
+        if (!isCurrentViewRequest(requestId)) {
             return;
         }
 
@@ -179,7 +195,7 @@ async function openMinor(id) {
         minorLink.href = minor.hse_url;
         minorLink.hidden = false;
     } catch {
-        if (isCurrentMinorRequest(requestId)) {
+        if (isCurrentViewRequest(requestId)) {
             minorMessage.textContent = "Не удалось загрузить майнор. Вернитесь в каталог и попробуйте снова.";
         }
         return;
@@ -194,7 +210,7 @@ async function loadMinorReviews(id, requestId) {
     try {
         const response = await fetch(`/minors/${id}/reviews`, { cache: "no-store" });
 
-        if (handleUnauthorized(response) || !isCurrentMinorRequest(requestId)) {
+        if (handleUnauthorized(response) || !isCurrentViewRequest(requestId)) {
             return;
         }
 
@@ -209,7 +225,7 @@ async function loadMinorReviews(id, requestId) {
 
         const data = await response.json();
 
-        if (!isCurrentMinorRequest(requestId)) {
+        if (!isCurrentViewRequest(requestId)) {
             return;
         }
 
@@ -219,8 +235,72 @@ async function loadMinorReviews(id, requestId) {
 
         minorMessage.textContent = data.items.length === 0 ? "Опубликованных отзывов пока нет." : "";
     } catch {
-        if (isCurrentMinorRequest(requestId)) {
+        if (isCurrentViewRequest(requestId)) {
             minorMessage.textContent = "Не удалось загрузить отзывы. Вернитесь в каталог и попробуйте снова.";
+        }
+    }
+}
+
+function updateMyReviewNames() {
+    for (const heading of myReviewsList.querySelectorAll("[data-minor-id]")) {
+        heading.textContent = minorNames.get(Number(heading.dataset.minorId)) || "Название майнора недоступно";
+    }
+}
+
+async function openMyReviews() {
+    if (!isAuthenticated) {
+        return;
+    }
+
+    const requestId = ++viewRequestId;
+    catalog.hidden = true;
+    minorDetails.hidden = true;
+    myReviews.hidden = false;
+    myReviewsTitle.focus();
+    myReviewsList.replaceChildren();
+    myReviewsMessage.textContent = "Загружаем ваши отзывы…";
+
+    try {
+        const response = await fetch("/me/reviews", { cache: "no-store" });
+
+        if (handleUnauthorized(response) || !isCurrentViewRequest(requestId)) {
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error("My reviews request failed");
+        }
+
+        const data = await response.json();
+
+        if (!isCurrentViewRequest(requestId)) {
+            return;
+        }
+
+        const statusLabels = {
+            pending: "На проверке",
+            published: "Опубликован",
+            rejected: "Отклонён",
+        };
+
+        for (const review of data.items) {
+            const item = createReviewItem(review);
+            const name = document.createElement("h3");
+            name.dataset.minorId = review.minor_id;
+
+            const status = document.createElement("p");
+            status.className = "review-status";
+            status.textContent = `Статус: ${statusLabels[review.status] || "Неизвестен"}`;
+
+            item.prepend(name, status);
+            myReviewsList.append(item);
+        }
+
+        updateMyReviewNames();
+        myReviewsMessage.textContent = data.items.length === 0 ? "Вы пока не оставляли отзывов." : "";
+    } catch {
+        if (isCurrentViewRequest(requestId)) {
+            myReviewsMessage.textContent = "Не удалось загрузить ваши отзывы. Нажмите «Мои отзывы», чтобы попробовать снова.";
         }
     }
 }
@@ -293,4 +373,6 @@ async function logout() {
 
 logoutButton.addEventListener("click", logout);
 backToCatalogButton.addEventListener("click", showCatalog);
+myReviewsBackButton.addEventListener("click", showCatalog);
+myReviewsButton.addEventListener("click", openMyReviews);
 checkSession();
