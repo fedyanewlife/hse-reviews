@@ -49,6 +49,37 @@ body {
     margin: 16px 24px;
 }
 
-.auth-message:empty {
+.auth-message:empty,
+.catalog-message:empty {
     display: none;
+}
+
+.catalog {
+    max-width: 960px;
+    padding: 24px;
+}
+
+.catalog h2 {
+    margin-top: 0;
+}
+
+.minors-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.minors-list li {
+    padding: 16px 0;
+    border-bottom: 1px solid #e5e7eb;
+    overflow-wrap: anywhere;
+}
+
+.minors-list h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+}
+
+.minors-list a {
+    color: #1d4ed8;
 }
