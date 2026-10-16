@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,6 +33,17 @@ const queryGetMyReviews = `
 	WHERE user_id = $1
 	ORDER BY created_at DESC, id DESC`
 
+const queryMinorExists = `SELECT EXISTS (SELECT 1 FROM minors WHERE id = $1)`
+
+const queryGetMinorReviews = `
+	SELECT id, completion_year,
+		difficulty_rating, workload_rating, interest_rating,
+		usefulness_rating, recommendation_rating,
+		experience_text, selection_advice, source, created_at
+	FROM reviews
+	WHERE minor_id = $1 AND status = 'published'
+	ORDER BY created_at DESC, id DESC`
+
 type Review struct {
 	ID                   int32      `json:"id"`
 	MinorID              int32      `json:"minor_id"`
@@ -46,6 +58,20 @@ type Review struct {
 	Status               string     `json:"status"`
 	CreatedAt            time.Time  `json:"created_at"`
 	PublishedAt          *time.Time `json:"published_at"`
+}
+
+type PublishedReview struct {
+	ID                   int32     `json:"id"`
+	CompletionYear       *int      `json:"completion_year"`
+	DifficultyRating     int       `json:"difficulty_rating"`
+	WorkloadRating       int       `json:"workload_rating"`
+	InterestRating       int       `json:"interest_rating"`
+	UsefulnessRating     int       `json:"usefulness_rating"`
+	RecommendationRating int       `json:"recommendation_rating"`
+	ExperienceText       *string   `json:"experience_text"`
+	SelectionAdvice      *string   `json:"selection_advice"`
+	Source               string    `json:"source"`
+	CreatedAt            time.Time `json:"created_at"`
 }
 
 type createReviewRequest struct {
@@ -187,6 +213,66 @@ func (h *Handler) GetMyReviews(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(struct {
 		Items []Review `json:"items"`
+	}{Items: reviews})
+}
+
+func (h *Handler) GetMinorReviews(w http.ResponseWriter, r *http.Request) {
+	minorID, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+	if err != nil || minorID <= 0 {
+		writeError(w, http.StatusBadRequest, "Некорректный идентификатор майнора")
+		return
+	}
+
+	var exists bool
+	if err := h.db.QueryRow(r.Context(), queryMinorExists, minorID).Scan(&exists); err != nil {
+		log.Printf("get minor reviews: check minor: %v", err)
+		writeError(w, http.StatusInternalServerError, "Не удалось получить отзывы")
+		return
+	}
+	if !exists {
+		writeError(w, http.StatusNotFound, "Майнор не найден")
+		return
+	}
+
+	rows, err := h.db.Query(r.Context(), queryGetMinorReviews, minorID)
+	if err != nil {
+		log.Printf("get minor reviews: %v", err)
+		writeError(w, http.StatusInternalServerError, "Не удалось получить отзывы")
+		return
+	}
+	defer rows.Close()
+
+	reviews := make([]PublishedReview, 0)
+	for rows.Next() {
+		var review PublishedReview
+		if err := rows.Scan(
+			&review.ID,
+			&review.CompletionYear,
+			&review.DifficultyRating,
+			&review.WorkloadRating,
+			&review.InterestRating,
+			&review.UsefulnessRating,
+			&review.RecommendationRating,
+			&review.ExperienceText,
+			&review.SelectionAdvice,
+			&review.Source,
+			&review.CreatedAt,
+		); err != nil {
+			log.Printf("get minor reviews: %v", err)
+			writeError(w, http.StatusInternalServerError, "Не удалось получить отзывы")
+			return
+		}
+		reviews = append(reviews, review)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("get minor reviews: %v", err)
+		writeError(w, http.StatusInternalServerError, "Не удалось получить отзывы")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(struct {
+		Items []PublishedReview `json:"items"`
 	}{Items: reviews})
 }
 
