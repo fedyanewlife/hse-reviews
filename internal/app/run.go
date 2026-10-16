@@ -12,6 +12,7 @@ import (
 	"hse-reviews/internal/config"
 	"hse-reviews/internal/minors"
 	"hse-reviews/internal/repository"
+	"hse-reviews/internal/reviews"
 )
 
 func Run() error {
@@ -36,6 +37,7 @@ func Run() error {
 	}
 
 	minorsHandler := minors.NewHandler(db.Pool())
+	reviewsHandler := reviews.NewHandler(db.Pool())
 
 	http.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -56,6 +58,7 @@ func Run() error {
 	})))
 	http.Handle("GET /minors", authProvider.RequireSession(http.HandlerFunc(minorsHandler.GetMinors)))
 	http.Handle("GET /minors/{id}", authProvider.RequireSession(http.HandlerFunc(minorsHandler.GetMinor)))
+	http.Handle("POST /reviews", authProvider.RequireSession(http.HandlerFunc(reviewsHandler.CreateReview)))
 
 	log.Println("Starting server on localhost:8080")
 	return http.ListenAndServe("localhost:8080", nil)
