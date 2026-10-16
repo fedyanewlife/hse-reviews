@@ -23,6 +23,31 @@ const queryCreateReview = `
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NULLIF($9, ''), NULLIF($10, ''))
 	RETURNING id, status`
 
+const queryGetMyReviews = `
+	SELECT id, minor_id, completion_year,
+		difficulty_rating, workload_rating, interest_rating,
+		usefulness_rating, recommendation_rating,
+		experience_text, selection_advice, status, created_at, published_at
+	FROM reviews
+	WHERE user_id = $1
+	ORDER BY created_at DESC, id DESC`
+
+type Review struct {
+	ID                   int32      `json:"id"`
+	MinorID              int32      `json:"minor_id"`
+	CompletionYear       *int       `json:"completion_year"`
+	DifficultyRating     int        `json:"difficulty_rating"`
+	WorkloadRating       int        `json:"workload_rating"`
+	InterestRating       int        `json:"interest_rating"`
+	UsefulnessRating     int        `json:"usefulness_rating"`
+	RecommendationRating int        `json:"recommendation_rating"`
+	ExperienceText       *string    `json:"experience_text"`
+	SelectionAdvice      *string    `json:"selection_advice"`
+	Status               string     `json:"status"`
+	CreatedAt            time.Time  `json:"created_at"`
+	PublishedAt          *time.Time `json:"published_at"`
+}
+
 type createReviewRequest struct {
 	MinorID              int32  `json:"minor_id"`
 	CompletionYear       *int   `json:"completion_year"`
@@ -112,6 +137,57 @@ func (h *Handler) CreateReview(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(review)
+}
+
+func (h *Handler) GetMyReviews(w http.ResponseWriter, r *http.Request) {
+	userID, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "Необходима авторизация")
+		return
+	}
+
+	rows, err := h.db.Query(r.Context(), queryGetMyReviews, userID)
+	if err != nil {
+		log.Printf("get my reviews: %v", err)
+		writeError(w, http.StatusInternalServerError, "Не удалось получить отзывы")
+		return
+	}
+	defer rows.Close()
+
+	reviews := make([]Review, 0)
+	for rows.Next() {
+		var review Review
+		if err := rows.Scan(
+			&review.ID,
+			&review.MinorID,
+			&review.CompletionYear,
+			&review.DifficultyRating,
+			&review.WorkloadRating,
+			&review.InterestRating,
+			&review.UsefulnessRating,
+			&review.RecommendationRating,
+			&review.ExperienceText,
+			&review.SelectionAdvice,
+			&review.Status,
+			&review.CreatedAt,
+			&review.PublishedAt,
+		); err != nil {
+			log.Printf("get my reviews: %v", err)
+			writeError(w, http.StatusInternalServerError, "Не удалось получить отзывы")
+			return
+		}
+		reviews = append(reviews, review)
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("get my reviews: %v", err)
+		writeError(w, http.StatusInternalServerError, "Не удалось получить отзывы")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(struct {
+		Items []Review `json:"items"`
+	}{Items: reviews})
 }
 
 func writeError(w http.ResponseWriter, status int, msg string) {

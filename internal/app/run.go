@@ -59,6 +59,7 @@ func Run() error {
 	http.Handle("GET /minors", authProvider.RequireSession(http.HandlerFunc(minorsHandler.GetMinors)))
 	http.Handle("GET /minors/{id}", authProvider.RequireSession(http.HandlerFunc(minorsHandler.GetMinor)))
 	http.Handle("POST /reviews", authProvider.RequireSession(http.HandlerFunc(reviewsHandler.CreateReview)))
+	http.Handle("GET /me/reviews", authProvider.RequireSession(http.HandlerFunc(reviewsHandler.GetMyReviews)))
 
 	log.Println("Starting server on localhost:8080")
 	return http.ListenAndServe("localhost:8080", nil)
