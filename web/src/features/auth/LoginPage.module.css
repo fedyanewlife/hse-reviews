@@ -1,0 +1,134 @@
+.page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-height: 100vh;
+  padding: 16px 16px 40px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+}
+
+.wordmark {
+  font: 700 22px/1 var(--font-display);
+  letter-spacing: -0.03em;
+  color: var(--logo);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+  max-width: 480px;
+  margin: auto;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font: 700 var(--type-display-m) / 1.05 var(--font-display);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+.subtitle {
+  margin: 0;
+  font: 400 18px/1.55 var(--font-body);
+  color: var(--text-2);
+}
+
+.actions {
+  --control-h: 52px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.hseMark {
+  display: block;
+  flex: none;
+}
+
+.staffToggleRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.staffToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: transparent;
+  font: 500 14px/1 var(--font-body);
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.staffToggle:hover {
+  background: var(--hover-overlay);
+}
+
+.staffForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.staffActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+@media (min-width: 768px) {
+  .content {
+    padding: 40px 48px 64px;
+  }
+
+  .title {
+    font-size: var(--type-display);
+  }
+}
+
+@media (min-width: 1024px) {
+  .page {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .content {
+    padding: 40px 100px 64px;
+  }
+}

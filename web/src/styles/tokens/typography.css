@@ -1,0 +1,39 @@
+:root {
+  --font-display: 'Unbounded Variable', 'Manrope Variable', system-ui, sans-serif;
+  --font-body: 'Manrope Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+
+  /* display — Unbounded */
+  --type-rating-xl: 72px;
+  --lh-rating-xl: 1;
+  --type-display: 56px;
+  --lh-display: 1.05;
+  --type-h1: 40px;
+  --lh-h1: 1.1;
+  --type-h2: 28px;
+  --lh-h2: 1.15;
+  --type-h3: 20px;
+  --lh-h3: 1.25;
+  --tracking-display: -0.02em;
+
+  /* text — Manrope */
+  --type-lg: 18px;
+  --lh-lg: 1.55;
+  --type-body: 16px;
+  --lh-body: 1.55;
+  --type-sm: 14px;
+  --lh-sm: 1.45;
+  --type-xs: 13px;
+  --lh-xs: 1.4;
+
+  /* mobile overrides */
+  --type-display-m: 34px;
+  --type-h1-m: 28px;
+  --type-h2-m: 22px;
+  --type-rating-xl-m: 56px;
+}
