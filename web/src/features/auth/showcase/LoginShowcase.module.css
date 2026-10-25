@@ -43,50 +43,47 @@
 
 .bubblesTop,
 .bubblesBottom {
-  display: flex;
-  gap: 16px;
-  width: 100%;
-}
-
-.bubblesTop {
-  min-height: 96px;
-  justify-content: flex-start;
-  align-items: flex-end;
-}
-
-.bubblesBottom {
-  min-height: 110px;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.bubble {
   position: relative;
+  width: 100%;
+  min-height: 120px;
+}
+
+/* Положение, ширину и хвостик каждого облачка задают переменные из данных витрины. */
+.bubble {
+  position: absolute;
+  left: var(--x);
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-width: 260px;
-  padding: 14px 20px 16px;
+  box-sizing: border-box;
+  width: var(--width);
+  padding: 14px 18px 16px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 24px;
+  border-radius: 22px;
+  box-shadow:
+    0 1px 2px rgba(23, 23, 28, 0.04),
+    0 8px 20px -10px rgba(23, 23, 28, 0.14);
   opacity: 0;
-  transform: var(--from);
-  transform-origin: var(--origin);
   transition:
     opacity 1100ms var(--bubble-ease),
     transform 1100ms var(--bubble-ease);
 }
 
 .bubblesTop .bubble {
-  margin-bottom: var(--stagger);
+  bottom: var(--offset);
+  transform: translateY(10px) scale(0.92);
+  transform-origin: calc(var(--tail-x) + 6px) 100%;
 }
 
 .bubblesBottom .bubble {
-  margin-top: var(--stagger);
+  top: var(--offset);
+  transform: translateY(-10px) scale(0.92);
+  transform-origin: calc(var(--tail-x) + 6px) 0%;
 }
 
-.bubbleVisible {
+.bubblesTop .bubbleVisible,
+.bubblesBottom .bubbleVisible {
   opacity: 1;
   transform: translateY(0) scale(1);
 }
@@ -94,24 +91,24 @@
 .tail {
   position: absolute;
   left: var(--tail-x);
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   background: var(--surface);
   transform: rotate(45deg);
 }
 
 .bubblesTop .tail {
-  bottom: -8px;
+  bottom: -6px;
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  border-bottom-right-radius: 4px;
+  border-bottom-right-radius: 3px;
 }
 
 .bubblesBottom .tail {
-  top: -8px;
+  top: -6px;
   border-left: 1px solid var(--border);
   border-top: 1px solid var(--border);
-  border-top-left-radius: 4px;
+  border-top-left-radius: 3px;
 }
 
 .bubbleRating {
@@ -150,13 +147,17 @@
 }
 
 .cards {
-  display: grid;
+  position: relative;
 }
 
+/* Высоту блока задаёт только активная карточка, остальные лежат поверх неё и не растягивают его. */
 .card {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
-  grid-area: 1 / 1;
   overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -166,6 +167,10 @@
   transition:
     opacity 700ms var(--slow-ease),
     transform 700ms var(--slow-ease);
+}
+
+.cardActive {
+  position: relative;
 }
 
 .cardVisible {
@@ -190,7 +195,16 @@
 .cardMark {
   display: flex;
   grid-column: 1 / -1;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   margin-bottom: -6px;
+}
+
+.cardCity {
+  font: 700 14px/1 var(--font-body);
+  letter-spacing: 0.01em;
+  color: var(--logo);
 }
 
 .cardTitle {
@@ -200,6 +214,10 @@
   letter-spacing: var(--tracking-display);
   text-wrap: balance;
   overflow-wrap: break-word;
+}
+
+.cardTitleLong {
+  font-size: 24px;
 }
 
 .cardMeta {

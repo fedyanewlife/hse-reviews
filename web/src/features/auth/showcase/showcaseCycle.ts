@@ -28,13 +28,14 @@ export function staticCycleState(firstQuery: string, bubbleCount: number): Cycle
   return { index: 0, phase: 'show', typedLength: firstQuery.length, visibleBubbles: bubbleCount };
 }
 
-/** Следующий шаг сценария и задержка перед ним. */
+/** Следующий шаг сценария и задержка перед ним. `bubbleCounts` — число облачков у каждой карточки. */
 export function advanceCycle(
   state: CycleState,
   queries: readonly string[],
-  bubbleCount: number,
+  bubbleCounts: readonly number[],
 ): { next: CycleState; delayMs: number } {
   const query = queries[state.index] ?? '';
+  const bubbleCount = bubbleCounts[state.index] ?? 0;
 
   switch (state.phase) {
     case 'typing':
