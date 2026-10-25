@@ -40,7 +40,7 @@ func Run() error {
 	reviewsHandler := reviews.NewHandler(db.Pool())
 
 	http.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "web/index.html")
+		http.ServeFile(w, r, "web/app.html")
 	})
 	http.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web"))))
 
