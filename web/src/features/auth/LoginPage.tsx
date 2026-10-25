@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import { ChevronDown, ChevronUp, Moon, Sun } from 'lucide-react';
-import hseMarkForDark from '../../assets/hse-znak-for-dark.png';
-import hseMark from '../../assets/hse-znak.png';
+import hseMarkForDark from '../../assets/hse-dark.png';
+import hseMark from '../../assets/hse.png';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { IconButton } from '../../components/ui/IconButton';
@@ -39,7 +39,7 @@ export function LoginPage() {
               <br />
               за&nbsp;5&nbsp;минут
             </h1>
-            <p className={styles.subtitle}>Анонимные отзывы студентов Вышки.</p>
+            <p className={styles.subtitle}>Анонимные отзывы студентов Вышки</p>
           </div>
 
           <div className={styles.actions}>
@@ -63,7 +63,7 @@ export function LoginPage() {
                 aria-controls={staffFormId}
                 onClick={() => setStaffOpen((open) => !open)}
               >
-                <span>Вход для сотрудников сервиса</span>
+                <span>Вход по логину</span>
                 <Icon icon={staffOpen ? ChevronUp : ChevronDown} size={16} />
               </button>
             </div>

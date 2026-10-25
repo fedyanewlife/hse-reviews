@@ -11,8 +11,8 @@ import {
 } from './showcaseCycle';
 
 /** Кадр, на котором карточка и все отзывы уже показаны: только его можно задержать паузой. */
-function isFullyShown(state: CycleState, bubbleCount: number) {
-  return state.phase === 'show' && state.visibleBubbles >= bubbleCount;
+function isFullyShown(state: CycleState, bubbleCounts: readonly number[]) {
+  return state.phase === 'show' && state.visibleBubbles >= (bubbleCounts[state.index] ?? 0);
 }
 
 /**
@@ -20,7 +20,11 @@ function isFullyShown(state: CycleState, bubbleCount: number) {
  * Пока `paused`, полностью показанная карточка не сменяется; печать, стирание
  * и появление отзывов паузой не прерываются, чтобы анимация не замирала на полпути.
  */
-export function useShowcaseCycle(queries: readonly string[], bubbleCount: number, paused: boolean) {
+export function useShowcaseCycle(
+  queries: readonly string[],
+  bubbleCounts: readonly number[],
+  paused: boolean,
+) {
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const [state, setState] = useState<CycleState>(initialCycleState);
   const pausedRef = useRef(paused);
@@ -41,11 +45,11 @@ export function useShowcaseCycle(queries: readonly string[], bubbleCount: number
     };
 
     function tick() {
-      if (pausedRef.current && isFullyShown(current, bubbleCount)) {
+      if (pausedRef.current && isFullyShown(current, bubbleCounts)) {
         schedule(PAUSED_POLL_MS);
         return;
       }
-      const { next, delayMs } = advanceCycle(current, queries, bubbleCount);
+      const { next, delayMs } = advanceCycle(current, queries, bubbleCounts);
       current = next;
       setState(next);
       schedule(delayMs);
@@ -64,10 +68,10 @@ export function useShowcaseCycle(queries: readonly string[], bubbleCount: number
       window.clearTimeout(timer);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [reducedMotion, queries, bubbleCount]);
+  }, [reducedMotion, queries, bubbleCounts]);
 
   if (reducedMotion) {
-    return { state: staticCycleState(queries[0] ?? '', bubbleCount), reducedMotion };
+    return { state: staticCycleState(queries[0] ?? '', bubbleCounts[0] ?? 0), reducedMotion };
   }
   return { state, reducedMotion };
 }
