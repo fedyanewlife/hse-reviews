@@ -1,0 +1,125 @@
+:root {
+  /* base neutrals */
+  --white: #ffffff;
+  --ink-900: #17171c;
+  --ink-700: #3a3b45;
+  --ink-600: #5f6170;
+  --ink-400: #9a9ca8;
+  --line-200: #e4e5ea;
+  --line-300: #c9cbd3;
+  --gray-50: #f7f7f9;
+  --gray-100: #f1f2f5;
+
+  /* dark neutrals */
+  --night-950: #121216;
+  --night-900: #1a1a20;
+  --night-800: #25262d;
+  --night-700: #2c2d35;
+  --night-600: #4a4c57;
+  --night-400: #6e707d;
+  --night-300: #a3a5b3;
+  --night-50: #f2f2f5;
+  --night-100: #d6d7de;
+
+  /* directions — membership only, never status */
+  --dir-it: #076c93;
+  --dir-it-bg: #e0f4fc;
+  --dir-econ: #e8590c;
+  --dir-econ-bg: #ffebdd;
+  --dir-hum: #c2255c;
+  --dir-hum-bg: #fbe3ec;
+  --dir-sci: #2b8a3e;
+  --dir-sci-bg: #e3f3e6;
+  --dir-other: #868e96;
+  --dir-other-bg: #f1f3f5;
+  --dir-soc: #6741d9;
+  --dir-soc-bg: #efebfd;
+  --dir-edu: #a16b00;
+  --dir-edu-bg: #fbf0d4;
+
+  /* semantic */
+  --bg: var(--white);
+  --surface: var(--white);
+  --surface-subtle: var(--gray-50);
+  --surface-muted: var(--gray-100);
+  --text: var(--ink-900);
+  --text-2: var(--ink-600);
+  --text-disabled: var(--ink-400);
+  --text-on-ink: var(--white);
+  --border: var(--line-200);
+  --border-strong: var(--line-300);
+  --border-focus: var(--ink-900);
+  --action-bg: var(--ink-900);
+  --action-bg-hover: var(--ink-700);
+  --action-fg: var(--white);
+  --inverse-bg: var(--ink-900);
+  --inverse-fg: var(--white);
+  --data-fill: var(--ink-900);
+  --hover-overlay: rgba(23, 23, 28, 0.06);
+  --knob: var(--white);
+  --status-bg: var(--gray-100);
+  --status-fg: var(--ink-900);
+  --scrim: rgba(23, 23, 28, 0.48);
+  --link: var(--ink-900);
+  --link-hover: var(--ink-600);
+  /* logo — only for the «ОтзоВышка» wordmark */
+  --logo: #0f2d69;
+  /* rating star — icon only, never text */
+  --star: #f2a900;
+}
+
+/* Dark theme: data-theme="dark" on <html> (or any container). */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --dir-it: #3db4e8;
+  --dir-it-bg: #10293a;
+  --dir-econ: #ff8f57;
+  --dir-econ-bg: #3a2316;
+  --dir-hum: #f2689a;
+  --dir-hum-bg: #3b1827;
+  --dir-sci: #5bc870;
+  --dir-sci-bg: #16301d;
+  --dir-other: #adb5bd;
+  --dir-other-bg: #26282d;
+  --dir-soc: #a491ff;
+  --dir-soc-bg: #241e44;
+  --dir-edu: #f2b53c;
+  --dir-edu-bg: #33270f;
+
+  --bg: var(--night-950);
+  --surface: var(--night-950);
+  --surface-subtle: var(--night-900);
+  --surface-muted: var(--night-800);
+  --text: var(--night-50);
+  --text-2: var(--night-300);
+  --text-disabled: var(--night-400);
+  --text-on-ink: var(--night-950);
+  --border: var(--night-700);
+  --border-strong: var(--night-600);
+  --border-focus: var(--night-50);
+  --action-bg: var(--night-50);
+  --action-bg-hover: var(--night-100);
+  --action-fg: var(--night-950);
+  --inverse-bg: var(--night-50);
+  --inverse-fg: var(--night-950);
+  --data-fill: var(--night-50);
+  --hover-overlay: rgba(255, 255, 255, 0.07);
+  --knob: var(--white);
+  --status-bg: var(--night-800);
+  --status-fg: var(--night-50);
+  --scrim: rgba(0, 0, 0, 0.64);
+  --link: var(--night-50);
+  --link-hover: var(--night-300);
+  --logo: #7da0d2;
+  --star: #ffc533;
+  --shadow-float: 0 12px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* Aliases: «Бизнес» и «Культура» используют цвета существующих направлений. */
+:root,
+[data-theme] {
+  --dir-biz: var(--dir-econ);
+  --dir-biz-bg: var(--dir-econ-bg);
+  --dir-cult: var(--dir-hum);
+  --dir-cult-bg: var(--dir-hum-bg);
+}
