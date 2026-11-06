@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
-import { ChevronDown, ChevronUp, Moon, Sun } from 'lucide-react';
+import { ChevronDown, ChevronUp, Sun } from 'lucide-react';
+import darkModeIcon from '../../assets/dark-mode.png';
 import hseMarkForDark from '../../assets/hse-dark.png';
 import hseMark from '../../assets/hse.png';
 import { Button } from '../../components/ui/Button';
@@ -26,7 +27,7 @@ export function LoginPage() {
         <header className={styles.header}>
           <span className={styles.wordmark}>ОтзоВышка</span>
           <IconButton
-            icon={isDark ? Sun : Moon}
+            icon={isDark ? Sun : darkModeIcon}
             label={isDark ? 'Светлая тема' : 'Тёмная тема'}
             onClick={toggleTheme}
           />

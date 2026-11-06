@@ -65,6 +65,8 @@
     0 1px 2px rgba(23, 23, 28, 0.04),
     0 8px 20px -10px rgba(23, 23, 28, 0.14);
   opacity: 0;
+  /* Сохраняем слой между появлениями, чтобы в конце scale не менялась растеризация текста. */
+  will-change: transform, opacity;
   transition:
     opacity 1100ms var(--bubble-ease),
     transform 1100ms var(--bubble-ease);
@@ -72,20 +74,20 @@
 
 .bubblesTop .bubble {
   bottom: var(--offset);
-  transform: translateY(10px) scale(0.92);
+  transform: translate3d(0, 10px, 0) scale(0.92);
   transform-origin: calc(var(--tail-x) + 6px) 100%;
 }
 
 .bubblesBottom .bubble {
   top: var(--offset);
-  transform: translateY(-10px) scale(0.92);
+  transform: translate3d(0, -10px, 0) scale(0.92);
   transform-origin: calc(var(--tail-x) + 6px) 0%;
 }
 
 .bubblesTop .bubbleVisible,
 .bubblesBottom .bubbleVisible {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translate3d(0, 0, 0) scale(1);
 }
 
 .tail {
@@ -257,6 +259,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .bubble {
+    will-change: auto;
+  }
+
   .showcase,
   .layer,
   .bubble,

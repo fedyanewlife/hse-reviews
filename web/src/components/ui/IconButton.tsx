@@ -5,7 +5,7 @@ import { Icon } from './Icon';
 import styles from './IconButton.module.css';
 
 type IconButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & {
-  icon: LucideIcon;
+  icon: LucideIcon | string;
   /** Обязательная подпись: у кнопки нет видимого текста. */
   label: string;
   variant?: 'ghost' | 'secondary' | 'primary';
@@ -29,7 +29,11 @@ export function IconButton({
       className={cx(styles.iconButton, styles[variant], styles[size], className)}
       {...rest}
     >
-      <Icon icon={icon} size={size === 's' ? 16 : 20} />
+      {typeof icon === 'string' ? (
+        <img src={icon} alt="" width={size === 's' ? 16 : 20} height={size === 's' ? 16 : 20} />
+      ) : (
+        <Icon icon={icon} size={size === 's' ? 16 : 20} />
+      )}
     </button>
   );
 }
