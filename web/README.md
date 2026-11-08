@@ -11,9 +11,36 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-В режиме разработки запросы `/auth/*`, `/me`, `/health` проксируются на бэкенд `http://localhost:8080`
+В режиме разработки запросы `/auth/*`, `/me/*`, `/health`, `/minors/*`, `/reviews` проксируются на бэкенд `http://localhost:8080`
 (другой адрес — через переменную `BACKEND_URL`). Фронтенд и API должны жить на одном origin:
 сессия хранится в HttpOnly-cookie.
+
+## Главная страница
+
+`http://localhost:5173/catalog` (или `/home`)
+Авторизация остаётся по адресу `/`
+
+При `npm run dev` по умолчанию включён режим `demo`: каталог работает без Go, Docker и входа.
+Доступны поиск по названию, направлению и факультету, фильтры, сортировка, избранное,
+просмотр примеров отзывов и раскрытие следующих карточек. Клавиши Ctrl+K / Cmd+K
+переводят фокус в поиск. Избранное и отзывы из раздела «Мои отзывы» хранятся только
+в localStorage этого браузера; они не отправляются на сервер и не публикуются.
+
+Состояния можно посмотреть отдельно:
+
+- `/catalog?state=empty` — пустая выдача с действующим сбросом поиска и фильтров;
+- `/catalog?state=loading` — skeleton списка (включая вариант без анимации при reduced motion).
+
+Данные примеров — `src/features/catalog/catalogDemo.ts`. Демо-репозиторий загружается
+динамически. Компоненты используют общий интерфейс `CatalogRepository`.
+
+## Подключение API
+
+HTTP-адаптер уже реализован в `src/features/catalog/catalogApi.ts`. Для его включения
+создайте `.env.local` по образцу `.env.example`, установите `VITE_CATALOG_MODE=api`
+и перезапустите Vite. Production-сборка без переопределения режима по умолчанию использует API.
+
+Проверка логики каталога: `npm test`.
 
 ## Скрипты
 
@@ -22,6 +49,7 @@ npm run dev        # http://localhost:5173
 | `npm run build`        | проверка типов и production-сборка в `dist/` |
 | `npm run preview`      | локальный просмотр собранной версии          |
 | `npm run typecheck`    | только проверка типов                        |
+| `npm test`             | логика каталога и контракт HTTP-адаптера     |
 | `npm run lint`         | ESLint                                       |
 | `npm run format`       | Prettier                                     |
 | `npm run format:check` | проверка форматирования (для CI)             |
@@ -31,8 +59,8 @@ npm run dev        # http://localhost:5173
 ```
 src/
   components/ui/   примитивы дизайн-системы: Button, IconButton, TextField, SearchField, DirectionMark
-  features/        экраны и их логика (auth — страница входа, theme — светлая/тёмная тема)
-  shared/api/      адреса эндпоинтов бэкенда
+  features/        auth — вход, catalog — главная/репозитории данных, theme — тема
+  shared/api/      HTTP-клиент, ошибки и адреса эндпоинтов
   lib/             общие хелперы и хуки
   styles/tokens/   токены дизайн-системы: цвета, типографика, отступы
 ```
