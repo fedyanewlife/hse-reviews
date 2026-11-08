@@ -1,4 +1,6 @@
 .page {
+  --auth-supporting-text: color-mix(in srgb, var(--text) 85%, var(--bg));
+
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   min-height: 100vh;
@@ -53,8 +55,8 @@
 
 .subtitle {
   margin: 0;
-  font: 400 18px/1.55 var(--font-body);
-  color: var(--text-2);
+  font: 500 20px/1.5 var(--font-body);
+  color: var(--auth-supporting-text);
 }
 
 .actions {
@@ -86,8 +88,8 @@
   border: 0;
   border-radius: var(--radius-m);
   background: transparent;
-  font: 500 14px/1 var(--font-body);
-  color: var(--text-2);
+  font: 500 16px/1.4 var(--font-body);
+  color: var(--auth-supporting-text);
   cursor: pointer;
 }
 
