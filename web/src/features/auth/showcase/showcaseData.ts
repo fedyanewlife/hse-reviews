@@ -20,7 +20,8 @@ export type ShowcaseCard = {
   query: string;
   direction: Direction;
   title: string;
-  city?: string;
+  /** Факультет, школа или институт, который ведёт майнор. */
+  faculty: string;
   rating: number;
   reviewCount: number;
   reviews: ReadonlyArray<{ rating: number; text: string }>;
@@ -32,6 +33,7 @@ export const SHOWCASE_CARDS: readonly ShowcaseCard[] = [
     query: 'анализ',
     direction: 'it',
     title: 'Интеллектуальный анализ данных',
+    faculty: 'Факультет компьютерных наук',
     rating: 4.6,
     reviewCount: 128,
     reviews: [
@@ -49,6 +51,7 @@ export const SHOWCASE_CARDS: readonly ShowcaseCard[] = [
     query: 'менеджмент',
     direction: 'biz',
     title: 'Менеджмент',
+    faculty: 'Высшая школа бизнеса',
     rating: 4.3,
     reviewCount: 96,
     reviews: [
@@ -66,6 +69,7 @@ export const SHOWCASE_CARDS: readonly ShowcaseCard[] = [
     query: 'право',
     direction: 'soc',
     title: 'Право для всех',
+    faculty: 'Факультет права',
     rating: 4.5,
     reviewCount: 54,
     reviews: [
@@ -82,6 +86,7 @@ export const SHOWCASE_CARDS: readonly ShowcaseCard[] = [
     query: 'литература',
     direction: 'cult',
     title: 'Литература сегодня: что читать и как писать',
+    faculty: 'Факультет гуманитарных наук',
     rating: 4.7,
     reviewCount: 67,
     reviews: [
@@ -99,6 +104,7 @@ export const SHOWCASE_CARDS: readonly ShowcaseCard[] = [
     query: 'преподавание',
     direction: 'edu',
     title: 'Мастерство преподавания в цифровую эпоху',
+    faculty: 'Институт образования',
     rating: 4.4,
     reviewCount: 31,
     reviews: [

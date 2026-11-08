@@ -146,7 +146,7 @@ function MinorCard({
       <div className={styles.cardBody}>
         <span className={styles.cardMark}>
           <DirectionMark direction={card.direction} size="s" />
-          <span className={styles.cardCity}>{card.city ?? 'Москва'}</span>
+          <span className={styles.cardFaculty}>{card.faculty}</span>
         </span>
         <p
           className={cx(

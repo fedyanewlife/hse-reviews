@@ -219,18 +219,22 @@
   display: flex;
   grid-column: 1 / -1;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   margin-bottom: calc(-6px * var(--showcase-scale));
 }
 
 .cardMark > :first-child {
+  flex-shrink: 0;
   font-size: calc(13px * var(--showcase-scale));
 }
 
-.cardCity {
-  font: 700 calc(14px * var(--showcase-scale)) / 1 var(--font-body);
-  letter-spacing: 0.01em;
+.cardFaculty {
+  min-width: 0;
+  max-width: 75%;
+  font: 600 calc(13px * var(--showcase-scale)) / 1.35 var(--font-body);
+  text-align: right;
+  overflow-wrap: anywhere;
   color: var(--logo);
 }
 
