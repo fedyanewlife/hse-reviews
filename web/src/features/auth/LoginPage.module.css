@@ -30,11 +30,12 @@
 }
 
 .main {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 32px;
   width: 100%;
-  max-width: 480px;
+  max-width: 640px;
   margin: auto;
 }
 
@@ -48,9 +49,9 @@
 
 .title {
   margin: 0;
-  font: 700 var(--type-display-m) / 1.05 var(--font-display);
+  font: 700 clamp(24px, 9cqw, var(--type-display)) / 1.05 var(--font-display);
   letter-spacing: var(--tracking-display);
-  text-wrap: balance;
+  white-space: nowrap;
 }
 
 .subtitle {
@@ -66,6 +67,8 @@
   flex-direction: column;
   gap: 20px;
   width: 100%;
+  max-width: 480px;
+  align-self: center;
 }
 
 .hseMark {
@@ -116,10 +119,6 @@
 @media (min-width: 768px) {
   .content {
     padding: 40px 48px 64px;
-  }
-
-  .title {
-    font-size: var(--type-display);
   }
 }
 
