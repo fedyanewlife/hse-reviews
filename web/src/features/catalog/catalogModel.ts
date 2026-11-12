@@ -10,6 +10,18 @@ export const FAVORITES_KEY = 'otz-catalog-demo-favorites';
 export const REVIEWS_KEY = 'otz-catalog-demo-reviews';
 export const PAGE_SIZE = 6;
 
+/** Keep saved order; deleted or unavailable disciplines never become placeholder cards. */
+export function selectFavoriteDisciplines(
+  items: readonly Discipline[],
+  favorites: readonly string[],
+) {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  return [...new Set(favorites)].flatMap((id) => {
+    const item = byId.get(id);
+    return item ? [item] : [];
+  });
+}
+
 const normalize = (value: string) => value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
 
 export function selectDisciplines(items: readonly Discipline[], filters: CatalogFilters) {

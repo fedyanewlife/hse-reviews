@@ -133,6 +133,20 @@
 .heroCopy {
   min-width: 0;
 }
+.hero.heroFavorites {
+  --hero-start: #ffebef;
+  --hero-end: #f5e3f6;
+
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  min-height: 236px;
+}
+:global([data-theme='dark']) .hero.heroFavorites {
+  --hero-start: #321d2b;
+  --hero-end: #2a1f3e;
+}
+.hero.heroFavoritesEmpty {
+  grid-template-columns: minmax(0, 1fr);
+}
 .eyebrow {
   display: flex;
   align-items: center;
@@ -757,6 +771,10 @@
 }
 
 @media (max-width: 1099px) {
+  .hero.heroFavorites {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

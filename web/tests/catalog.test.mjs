@@ -169,6 +169,32 @@ test('sorting does not mutate data and works on a favorites subset', () => {
   );
 });
 
+test('favorite hero takes the first three saved disciplines and promotes the next after removal', () => {
+  const favorites = ['ux-design', 'data-analysis', 'missing-id', 'psychology', 'law', 'ux-design'];
+  const original = [...favorites];
+  const selected = model.selectFavoriteDisciplines(items, favorites);
+  assert.deepEqual(
+    selected.map((item) => item.id),
+    ['ux-design', 'data-analysis', 'psychology', 'law'],
+  );
+  assert.deepEqual(
+    selected.slice(0, 3).map((item) => item.id),
+    ['ux-design', 'data-analysis', 'psychology'],
+  );
+  assert.deepEqual(
+    model
+      .selectFavoriteDisciplines(
+        items,
+        favorites.filter((id) => id !== 'ux-design'),
+      )
+      .slice(0, 3)
+      .map((item) => item.id),
+    ['data-analysis', 'psychology', 'law'],
+  );
+  assert.deepEqual(model.selectFavoriteDisciplines(items, []), []);
+  assert.deepEqual(favorites, original);
+});
+
 test('bad or unavailable storage is recovered without crashing', () => {
   for (const raw of [null, 'broken', 'null', '{}']) {
     assert.deepEqual(model.parseFavorites(raw), []);

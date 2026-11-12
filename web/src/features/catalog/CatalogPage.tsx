@@ -14,7 +14,14 @@ import { useCatalogAccount } from './useCatalogAccount';
 import { CatalogCard, CatalogSkeleton } from './CatalogCard';
 import { CatalogFilterBar } from './CatalogFilterBar';
 import { HeroReviews } from './HeroReviews';
-import { minorCount, reviewCount, PAGE_SIZE, selectDisciplines } from './catalogModel';
+import { FavoriteHeroCards } from './FavoriteHeroCards';
+import {
+  minorCount,
+  reviewCount,
+  PAGE_SIZE,
+  selectDisciplines,
+  selectFavoriteDisciplines,
+} from './catalogModel';
 import {
   CATALOG_DIRECTIONS,
   REVIEW_CRITERIA,
@@ -82,7 +89,8 @@ export function CatalogPage() {
     }
   }, [visibleCount]);
 
-  const source = view === 'favorites' ? items.filter((item) => favorites.includes(item.id)) : items;
+  const favoriteItems = selectFavoriteDisciplines(items, favorites);
+  const source = view === 'favorites' ? favoriteItems : items;
   const filtered = selectDisciplines(source, filters);
   const visible = filtered.slice(0, visibleCount);
   const validReviews = account.reviews;
@@ -195,7 +203,11 @@ export function CatalogPage() {
 
       <main id="main-content" className={styles.main}>
         <section
-          className={styles.hero}
+          className={cx(
+            styles.hero,
+            view === 'favorites' && styles.heroFavorites,
+            view === 'favorites' && !favoriteItems.length && styles.heroFavoritesEmpty,
+          )}
           aria-labelledby="catalog-title"
           onMouseEnter={() => setHeroHovered(true)}
           onMouseLeave={() => setHeroHovered(false)}
@@ -205,8 +217,14 @@ export function CatalogPage() {
           }}
         >
           <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>
-              {status === 'ready' ? (
+            <p className={styles.eyebrow} role={view === 'favorites' ? 'status' : undefined}>
+              {view === 'favorites' ? (
+                status === 'ready' && account.status === 'ready' ? (
+                  `${minorCount(favoriteItems.length)} в избранном`
+                ) : (
+                  'Ваши сохранённые майноры'
+                )
+              ) : status === 'ready' ? (
                 <>
                   {minorCount(isDemoCatalog ? 30 : items.length)} <span aria-hidden="true">·</span>{' '}
                   {reviewCount(isDemoCatalog ? 200 : totalReviews)}
@@ -222,15 +240,38 @@ export function CatalogPage() {
                   ? 'Мои отзывы'
                   : 'Список дисциплин'}
             </h1>
-            <button type="button" className={styles.heroReviewLink}>
-              Уже прошёл майнор? Расскажи, как было <Icon icon={ArrowRight} size={16} />
+            <button
+              type="button"
+              className={styles.heroReviewLink}
+              onClick={
+                view === 'favorites'
+                  ? () => {
+                      if (favoriteItems.length)
+                        document
+                          .getElementById('catalog-results')
+                          ?.scrollIntoView({ block: 'start' });
+                      else changeView('disciplines');
+                    }
+                  : undefined
+              }
+            >
+              {view === 'favorites'
+                ? favoriteItems.length
+                  ? 'Сравни и выбери свой'
+                  : 'Найди майнор и сохрани его'
+                : 'Уже прошёл майнор? Расскажи, как было'}{' '}
+              <Icon icon={ArrowRight} size={16} />
             </button>
           </div>
-          <HeroReviews
-            key={heroReviews.map((review) => review.id).join('|')}
-            reviews={heroReviews}
-            paused={heroHovered || heroFocused}
-          />
+          {view === 'favorites' ? (
+            <FavoriteHeroCards items={favoriteItems} />
+          ) : (
+            <HeroReviews
+              key={heroReviews.map((review) => review.id).join('|')}
+              reviews={heroReviews}
+              paused={heroHovered || heroFocused}
+            />
+          )}
         </section>
         {notice && (
           <p className={styles.notice} role="status">
@@ -303,6 +344,7 @@ export function CatalogPage() {
         )}
 
         <section
+          id="catalog-results"
           className={styles.results}
           aria-label={view === 'reviews' ? 'Ваши отзывы' : 'Дисциплины'}
           aria-busy={loading}
