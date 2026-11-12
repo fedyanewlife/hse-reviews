@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowRight, Heart, Pencil, Search, Sun, UserRound } from 'lucide-react';
-import darkModeIcon from '../../assets/dark-mode.png';
+import { ArrowDown, ArrowRight, Heart, Pencil, Search } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { DirectionMark } from '../../components/ui/DirectionMark';
 import { Icon } from '../../components/ui/Icon';
-import { IconButton } from '../../components/ui/IconButton';
 import { SearchField } from '../../components/ui/SearchField';
 import { cx } from '../../lib/cx';
-import { useTheme } from '../theme/useTheme';
 import { errorMessage, isUnauthorized } from '../../shared/api/client';
-import { catalogRepository, isDemoCatalog } from './catalogRepository';
+import { isDemoCatalog } from './catalogRepository';
+import { CatalogHeader } from './CatalogHeader';
 import { useCatalogAccount } from './useCatalogAccount';
 import { CatalogCard, CatalogSkeleton } from './CatalogCard';
 import { CatalogFilterBar } from './CatalogFilterBar';
@@ -50,15 +48,16 @@ export function CatalogPage() {
   const { items, status, error: catalogError, retry } = useCatalog(preview);
   const account = useCatalogAccount();
   const favorites = account.favorites;
-  const { theme, toggleTheme } = useTheme();
-  const [view, setView] = useState<CatalogView>('disciplines');
+  const [view, setView] = useState<CatalogView>(() => {
+    const value = new URLSearchParams(window.location.search).get('view');
+    return value === 'favorites' || value === 'reviews' ? value : 'disciplines';
+  });
   const [filters, setFilters] = useState<CatalogFilters>(() => ({
     ...DEFAULT_FILTERS,
     query: preview === 'empty' ? 'Квантовая кулинария' : '',
   }));
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [notice, setNotice] = useState('');
-  const [loggingOut, setLoggingOut] = useState(false);
   const [heroHovered, setHeroHovered] = useState(false);
   const [heroFocused, setHeroFocused] = useState(false);
   const searchId = 'catalog-search';
@@ -123,6 +122,10 @@ export function CatalogPage() {
   function changeView(next: CatalogView) {
     setView(next);
     setVisibleCount(PAGE_SIZE);
+    const url = new URL(window.location.href);
+    if (next === 'disciplines') url.searchParams.delete('view');
+    else url.searchParams.set('view', next);
+    window.history.replaceState(null, '', url);
   }
   async function toggleFavorite(id: string) {
     try {
@@ -132,74 +135,12 @@ export function CatalogPage() {
     }
   }
 
-  async function logout() {
-    setLoggingOut(true);
-    try {
-      await catalogRepository.logout();
-      window.location.assign('/');
-    } catch (error) {
-      setNotice(errorMessage(error));
-      setLoggingOut(false);
-    }
-  }
-
   return (
     <div className={styles.page}>
       <a href="#main-content" className={styles.skipLink}>
         К содержимому
       </a>
-      <header className={styles.header}>
-        <a href="/catalog" className={styles.wordmark}>
-          ОтзоВышка
-        </a>
-        <nav className={styles.nav} aria-label="Основная навигация">
-          {(
-            [
-              { id: 'disciplines', label: 'Дисциплины' },
-              { id: 'favorites', label: 'Избранное' },
-              { id: 'reviews', label: 'Мои отзывы' },
-            ] as const
-          ).map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={cx(styles.navItem, view === tab.id && styles.navActive)}
-              aria-current={view === tab.id ? 'page' : undefined}
-              onClick={() => changeView(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-        <div className={styles.headerActions}>
-          <IconButton
-            icon={theme === 'dark' ? Sun : darkModeIcon}
-            variant="secondary"
-            className={styles.themeButton}
-            label={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
-            onClick={toggleTheme}
-          />
-          <details className={styles.profile}>
-            <summary aria-label="Профиль">
-              {isDemoCatalog ? (
-                <span aria-hidden="true">Г</span>
-              ) : (
-                <Icon icon={UserRound} size={20} />
-              )}
-            </summary>
-            <div className={styles.profileMenu}>
-              <strong>{isDemoCatalog ? 'Демо-профиль' : 'Профиль'}</strong>
-              {isDemoCatalog && <p>Избранное и ваши отзывы хранятся в этом браузере.</p>}
-              <a href="/">Страница авторизации</a>
-              {!isDemoCatalog && (
-                <Button variant="ghost" disabled={loggingOut} onClick={() => void logout()}>
-                  Выйти
-                </Button>
-              )}
-            </div>
-          </details>
-        </div>
-      </header>
+      <CatalogHeader view={view} onViewChange={changeView} onError={setNotice} />
 
       <main id="main-content" className={styles.main}>
         <section

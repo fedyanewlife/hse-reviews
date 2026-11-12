@@ -6,6 +6,7 @@ import { Icon } from '../../components/ui/Icon';
 import { cx } from '../../lib/cx';
 import type { Discipline } from './catalogTypes';
 import styles from './FavoriteHeroCards.module.css';
+import { disciplineHref } from '../discipline/disciplineModel';
 
 export function FavoriteHeroCards({ items }: { items: readonly Discipline[] }) {
   const visible = items.slice(0, 3);
@@ -30,7 +31,7 @@ export function FavoriteHeroCards({ items }: { items: readonly Discipline[] }) {
               </span>
             </div>
             <h2 className={cx(styles.title, item.title.length > 24 && styles.longTitle)}>
-              {item.title}
+              <a href={disciplineHref(item.id)}>{item.title}</a>
             </h2>
             <div className={styles.meta}>
               <span

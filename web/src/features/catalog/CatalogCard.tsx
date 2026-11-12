@@ -8,6 +8,7 @@ import { cx } from '../../lib/cx';
 import { reviewCount } from './catalogModel';
 import { CATALOG_DIRECTIONS, type Discipline } from './catalogTypes';
 import styles from './CatalogPage.module.css';
+import { disciplineHref } from '../discipline/disciplineModel';
 
 export function CatalogCard({
   item,
@@ -36,7 +37,7 @@ export function CatalogCard({
         </span>
       </div>
       <h2 className={cx(styles.cardTitle, item.title.length > 32 && styles.cardTitleLong)}>
-        {item.title}
+        <a href={disciplineHref(item.id)}>{item.title}</a>
       </h2>
       <div className={styles.cardMeta}>
         <span

@@ -16,7 +16,10 @@ let heroCycle;
 const filters = { query: '', direction: 'all', faculties: [], minimumRating: 0, sort: 'reviews' };
 
 before(async () => {
-  server = await createServer({ server: { middlewareMode: true }, appType: 'custom' });
+  server = await createServer({
+    server: { middlewareMode: true, hmr: false, ws: false },
+    appType: 'custom',
+  });
   model = await server.ssrLoadModule('/src/features/catalog/catalogModel.ts');
   ({ DEMO_DISCIPLINES: items } = await server.ssrLoadModule(
     '/src/features/catalog/catalogDemo.ts',

@@ -2,6 +2,8 @@ import { CatalogStorageError } from '../../shared/api/client';
 import { DEMO_DISCIPLINES } from './catalogDemo';
 import { FAVORITES_KEY, parseFavorites, parseReviews, REVIEWS_KEY } from './catalogModel';
 import type { CatalogRepository } from './catalogRepository';
+import { demoPublishedReviews } from '../discipline/disciplineDemo';
+import { reviewSummary } from '../discipline/disciplineModel';
 
 type DemoStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
@@ -24,8 +26,23 @@ export function createDemoCatalogRepository(
     }
   }
   return {
-    listDisciplines: async () => DEMO_DISCIPLINES,
+    listDisciplines: async () =>
+      DEMO_DISCIPLINES.map((item) => {
+        const summary = reviewSummary(demoPublishedReviews(item));
+        return {
+          ...item,
+          rating:
+            summary.averages.recommendation === null
+              ? null
+              : Number(summary.averages.recommendation.toFixed(1)),
+          reviewCount: summary.count,
+        };
+      }),
     listReviews: async (id) => DEMO_DISCIPLINES.find((item) => item.id === id)?.reviews ?? [],
+    listPublishedReviews: async (id) => {
+      const item = DEMO_DISCIPLINES.find((value) => value.id === id);
+      return item ? demoPublishedReviews(item) : [];
+    },
     listFavorites: async () => parseFavorites(read(FAVORITES_KEY)),
     setFavorite: async (id, selected) => {
       const ids = parseFavorites(read(FAVORITES_KEY));

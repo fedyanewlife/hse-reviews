@@ -7,6 +7,7 @@ import {
   type UserReview,
 } from './catalogTypes';
 import type { CatalogRepository } from './catalogRepository';
+import type { PublishedReview, CompletionStatus } from '../discipline/disciplineTypes';
 
 type JsonRecord = Record<string, unknown>;
 function record(value: unknown): JsonRecord {
@@ -68,8 +69,7 @@ function reviewStatus(value: unknown): UserReview['status'] {
   if (value === 'pending' || value === 'published' || value === 'rejected') return value;
   throw new ApiContractError('Unknown review status');
 }
-function decodeMyReview(value: unknown): UserReview {
-  const item = record(value);
+function reviewRatings(item: JsonRecord) {
   const ratings = {
     difficulty: number(item.difficulty_rating, 'difficulty_rating', 1, 5),
     workload: number(item.workload_rating, 'workload_rating', 1, 5),
@@ -79,6 +79,11 @@ function decodeMyReview(value: unknown): UserReview {
   };
   if (Object.values(ratings).some((rating) => !Number.isInteger(rating)))
     throw new ApiContractError('Review ratings must be integers');
+  return ratings;
+}
+function decodeMyReview(value: unknown): UserReview {
+  const item = record(value);
+  const ratings = reviewRatings(item);
   return {
     id: id(item.id),
     disciplineId: id(item.minor_id),
@@ -86,6 +91,42 @@ function decodeMyReview(value: unknown): UserReview {
     experience: item.experience_text == null ? '' : text(item.experience_text, 'experience_text'),
     advice: item.selection_advice == null ? '' : text(item.selection_advice, 'selection_advice'),
     status: reviewStatus(item.status),
+  };
+}
+
+export function decodePublishedReview(value: unknown, disciplineId: string): PublishedReview {
+  const item = record(value);
+  const year =
+    item.completion_year == null
+      ? null
+      : number(item.completion_year, 'completion_year', 1900, 2200);
+  if (year !== null && !Number.isInteger(year))
+    throw new ApiContractError('Invalid completion year');
+  const statuses: readonly CompletionStatus[] = ['completed', 'earlier', 'studying', 'unknown'];
+  const completionStatus =
+    item.completion_status == null
+      ? year === null
+        ? 'unknown'
+        : 'completed'
+      : statuses.find((status) => status === item.completion_status);
+  if (!completionStatus) throw new ApiContractError('Unknown completion status');
+  const createdAt = item.created_at == null ? null : text(item.created_at, 'created_at');
+  if (createdAt !== null && !Number.isFinite(Date.parse(createdAt)))
+    throw new ApiContractError('Invalid review date');
+  const helpfulCount =
+    item.helpful_count == null ? null : number(item.helpful_count, 'helpful_count', 0);
+  if (helpfulCount !== null && !Number.isInteger(helpfulCount))
+    throw new ApiContractError('Invalid helpful count');
+  return {
+    id: id(item.id),
+    disciplineId,
+    completionStatus,
+    completionYear: year,
+    ratings: reviewRatings(item),
+    experience: item.experience_text == null ? '' : text(item.experience_text, 'experience_text'),
+    advice: item.selection_advice == null ? '' : text(item.selection_advice, 'selection_advice'),
+    createdAt,
+    helpfulCount,
   };
 }
 
@@ -120,6 +161,10 @@ export function createApiCatalogRepository(options: ApiOptions = {}): CatalogRep
           text: [experience, advice].filter(Boolean).join('\n\n'),
         };
       }),
+    listPublishedReviews: async (minorId, signal) =>
+      list(await request(`/minors/${serverId(minorId)}/reviews`, { signal })).map((value) =>
+        decodePublishedReview(value, minorId),
+      ),
     listFavorites: async (signal) => list(await request('/me/favorites', { signal })).map(id),
     setFavorite: async (minorId, selected) => {
       await request(`/me/favorites/${serverId(minorId)}`, { method: selected ? 'PUT' : 'DELETE' });
