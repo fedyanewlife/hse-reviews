@@ -1,4 +1,5 @@
 import { DIRECTIONS, type Direction } from '../../components/ui/directions';
+import type { CompletionStatus } from '../discipline/disciplineTypes';
 
 export type CatalogDirection = Direction;
 
@@ -45,5 +46,14 @@ export type ReviewInput = {
 };
 
 export type ReviewStatus = 'local' | 'pending' | 'published' | 'rejected';
-export type UserReview = ReviewInput & { id: string; status: ReviewStatus };
+export type UserReview = ReviewInput & {
+  id: string;
+  status: ReviewStatus;
+  createdAt?: string | null;
+  publishedAt?: string | null;
+  helpfulCount?: number | null;
+  moderationNote?: string | null;
+  completionStatus?: CompletionStatus;
+  completionYear?: number | null;
+};
 export type ReviewExcerpt = Discipline['reviews'][number];

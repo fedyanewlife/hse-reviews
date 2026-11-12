@@ -4,6 +4,7 @@ import { FAVORITES_KEY, parseFavorites, parseReviews, REVIEWS_KEY } from './cata
 import type { CatalogRepository } from './catalogRepository';
 import { demoPublishedReviews } from '../discipline/disciplineDemo';
 import { reviewSummary } from '../discipline/disciplineModel';
+import { assertCanSubmitReview } from '../my-reviews/myReviewModel';
 
 type DemoStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
@@ -53,8 +54,15 @@ export function createDemoCatalogRepository(
     },
     listMyReviews: async () => parseReviews(read(REVIEWS_KEY)),
     createReview: async (input) => {
-      const review = { ...input, id: makeId(), status: 'local' as const };
-      write(REVIEWS_KEY, [review, ...parseReviews(read(REVIEWS_KEY))]);
+      const existing = parseReviews(read(REVIEWS_KEY));
+      assertCanSubmitReview(existing, input.disciplineId);
+      const review = {
+        ...input,
+        id: makeId(),
+        status: 'local' as const,
+        createdAt: new Date().toISOString(),
+      };
+      write(REVIEWS_KEY, [review, ...existing]);
       return review;
     },
     logout: async () => {},

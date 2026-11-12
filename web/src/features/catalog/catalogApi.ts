@@ -84,6 +84,28 @@ function reviewRatings(item: JsonRecord) {
 function decodeMyReview(value: unknown): UserReview {
   const item = record(value);
   const ratings = reviewRatings(item);
+  const dates: Pick<UserReview, 'createdAt' | 'publishedAt'> = {};
+  for (const [field, key] of [
+    ['created_at', 'createdAt'],
+    ['published_at', 'publishedAt'],
+  ] as const) {
+    if (!(field in item)) continue;
+    const date = item[field] === null ? null : text(item[field], field);
+    if (date !== null && !Number.isFinite(Date.parse(date)))
+      throw new ApiContractError(`Invalid ${field}`);
+    dates[key] = date;
+  }
+  const metadata: Pick<UserReview, 'helpfulCount' | 'moderationNote'> = {};
+  if ('helpful_count' in item) {
+    const count =
+      item.helpful_count === null ? null : number(item.helpful_count, 'helpful_count', 0);
+    if (count !== null && !Number.isInteger(count))
+      throw new ApiContractError('Invalid helpful count');
+    metadata.helpfulCount = count;
+  }
+  if ('moderation_note' in item)
+    metadata.moderationNote =
+      item.moderation_note === null ? null : text(item.moderation_note, 'moderation_note');
   return {
     id: id(item.id),
     disciplineId: id(item.minor_id),
@@ -91,11 +113,13 @@ function decodeMyReview(value: unknown): UserReview {
     experience: item.experience_text == null ? '' : text(item.experience_text, 'experience_text'),
     advice: item.selection_advice == null ? '' : text(item.selection_advice, 'selection_advice'),
     status: reviewStatus(item.status),
+    ...dates,
+    ...metadata,
+    ...('completion_year' in item || 'completion_status' in item ? reviewCompletion(item) : {}),
   };
 }
 
-export function decodePublishedReview(value: unknown, disciplineId: string): PublishedReview {
-  const item = record(value);
+function reviewCompletion(item: JsonRecord) {
   const year =
     item.completion_year == null
       ? null
@@ -110,6 +134,11 @@ export function decodePublishedReview(value: unknown, disciplineId: string): Pub
         : 'completed'
       : statuses.find((status) => status === item.completion_status);
   if (!completionStatus) throw new ApiContractError('Unknown completion status');
+  return { completionYear: year, completionStatus };
+}
+
+export function decodePublishedReview(value: unknown, disciplineId: string): PublishedReview {
+  const item = record(value);
   const createdAt = item.created_at == null ? null : text(item.created_at, 'created_at');
   if (createdAt !== null && !Number.isFinite(Date.parse(createdAt)))
     throw new ApiContractError('Invalid review date');
@@ -120,8 +149,7 @@ export function decodePublishedReview(value: unknown, disciplineId: string): Pub
   return {
     id: id(item.id),
     disciplineId,
-    completionStatus,
-    completionYear: year,
+    ...reviewCompletion(item),
     ratings: reviewRatings(item),
     experience: item.experience_text == null ? '' : text(item.experience_text, 'experience_text'),
     advice: item.selection_advice == null ? '' : text(item.selection_advice, 'selection_advice'),

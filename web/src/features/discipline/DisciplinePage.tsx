@@ -36,7 +36,7 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
   const [audience, setAudience] = useState<ReviewAudience>('all');
   const [sort, setSort] = useState<ReviewSort>('helpful');
   const [limit, setLimit] = useState(6);
-  const [requestedReview, setRequestedReview] = useState<string | null>(null);
+  const [requestedReview, setRequestedReview] = useState<{ id: string } | null>(null);
   const voting = useHelpfulVotes(isDemoCatalog, setNotice);
   const summary = reviewSummary(data.items);
   const hasHelpful = data.items.some((review) => review.helpfulCount !== null);
@@ -49,17 +49,17 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
     .filter((value) => value.id !== item?.id && value.direction === item?.direction)
     .slice(0, 3);
   const favorite = account.favorites.includes(disciplineId);
-  const favoriteDisabled = account.status !== 'ready' || account.pendingIds.includes(disciplineId);
+  const favoriteDisabled =
+    account.favoritesStatus !== 'ready' || account.pendingIds.includes(disciplineId);
 
   useEffect(() => {
     document.title = `${item?.title ?? 'Майнор'} — ОтзоВышка`;
   }, [item?.title]);
   useEffect(() => {
     if (!requestedReview) return;
-    const element = document.getElementById(`review-${requestedReview}`);
+    const element = document.getElementById(`review-${requestedReview.id}`);
     element?.scrollIntoView({ block: 'start' });
     element?.focus({ preventScroll: true });
-    setRequestedReview(null);
   }, [requestedReview]);
 
   async function toggleFavorite() {
@@ -75,7 +75,7 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
       (review) => review.id === id,
     );
     setLimit(Math.max(6, index + 1));
-    setRequestedReview(id);
+    setRequestedReview({ id });
   }
   const sortOptions: { value: ReviewSort; label: string }[] = [
     ...(hasHelpful ? [{ value: 'helpful' as const, label: 'Полезные' }] : []),
@@ -207,10 +207,10 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                 </div>
               )}
             </section>
-            {account.status === 'error' && (
+            {account.favoritesStatus === 'error' && (
               <div className={styles.notice} role="alert">
-                <p>Избранное недоступно. {errorMessage(account.error)}</p>
-                {isUnauthorized(account.error) ? (
+                <p>Избранное недоступно. {errorMessage(account.favoritesError)}</p>
+                {isUnauthorized(account.favoritesError) ? (
                   <Button href="/" variant="secondary">
                     Войти
                   </Button>
@@ -351,7 +351,7 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                           onClick={() => {
                             const next = sorted[limit];
                             setLimit((value) => value + 6);
-                            if (next) setRequestedReview(next.id);
+                            if (next) setRequestedReview({ id: next.id });
                           }}
                         >
                           Показать ещё отзывы <Icon icon={ArrowDown} size={16} />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowRight, Heart, Pencil, Search } from 'lucide-react';
+import { ArrowDown, ArrowRight, Heart, Search } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { DirectionMark } from '../../components/ui/DirectionMark';
 import { Icon } from '../../components/ui/Icon';
@@ -13,6 +13,8 @@ import { CatalogCard, CatalogSkeleton } from './CatalogCard';
 import { CatalogFilterBar } from './CatalogFilterBar';
 import { HeroReviews } from './HeroReviews';
 import { FavoriteHeroCards } from './FavoriteHeroCards';
+import { MyReviewsPage } from '../my-reviews/MyReviewsPage';
+import { personalReviewPreview } from '../my-reviews/myReviewDemo';
 import {
   minorCount,
   reviewCount,
@@ -20,12 +22,7 @@ import {
   selectDisciplines,
   selectFavoriteDisciplines,
 } from './catalogModel';
-import {
-  CATALOG_DIRECTIONS,
-  REVIEW_CRITERIA,
-  type CatalogFilters,
-  type CatalogView,
-} from './catalogTypes';
+import { CATALOG_DIRECTIONS, type CatalogFilters, type CatalogView } from './catalogTypes';
 import { useCatalog } from './useCatalog';
 import styles from './CatalogPage.module.css';
 
@@ -35,12 +32,6 @@ const DEFAULT_FILTERS: CatalogFilters = {
   faculties: [],
   minimumRating: 0,
   sort: 'reviews',
-};
-const REVIEW_STATUS_LABELS = {
-  local: 'Сохранён в этом браузере',
-  pending: 'На проверке',
-  published: 'Опубликован',
-  rejected: 'Отклонён',
 };
 
 export function CatalogPage() {
@@ -52,6 +43,12 @@ export function CatalogPage() {
     const value = new URLSearchParams(window.location.search).get('view');
     return value === 'favorites' || value === 'reviews' ? value : 'disciplines';
   });
+  useEffect(() => {
+    const title = { disciplines: 'Дисциплины', favorites: 'Избранное', reviews: 'Мои отзывы' }[
+      view
+    ];
+    document.title = `${title} — ОтзоВышка`;
+  }, [view]);
   const [filters, setFilters] = useState<CatalogFilters>(() => ({
     ...DEFAULT_FILTERS,
     query: preview === 'empty' ? 'Квантовая кулинария' : '',
@@ -92,13 +89,13 @@ export function CatalogPage() {
   const source = view === 'favorites' ? favoriteItems : items;
   const filtered = selectDisciplines(source, filters);
   const visible = filtered.slice(0, visibleCount);
-  const validReviews = account.reviews;
-  const loading = status === 'loading' || (view !== 'disciplines' && account.status === 'loading');
+  const loading =
+    status === 'loading' || (view === 'favorites' && account.favoritesStatus === 'loading');
   const viewError =
     status === 'error'
       ? catalogError
-      : view !== 'disciplines' && account.status === 'error'
-        ? account.error
+      : view === 'favorites' && account.favoritesStatus === 'error'
+        ? account.favoritesError
         : null;
   const heroReviews = items.flatMap((item) =>
     item.reviews
@@ -143,99 +140,115 @@ export function CatalogPage() {
       <CatalogHeader view={view} onViewChange={changeView} onError={setNotice} />
 
       <main id="main-content" className={styles.main}>
-        <section
-          className={cx(
-            styles.hero,
-            view === 'favorites' && styles.heroFavorites,
-            view === 'favorites' && !favoriteItems.length && styles.heroFavoritesEmpty,
-          )}
-          aria-labelledby="catalog-title"
-          onMouseEnter={() => setHeroHovered(true)}
-          onMouseLeave={() => setHeroHovered(false)}
-          onFocusCapture={() => setHeroFocused(true)}
-          onBlurCapture={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget)) setHeroFocused(false);
-          }}
-        >
-          <div className={styles.heroCopy}>
-            <p className={styles.eyebrow} role={view === 'favorites' ? 'status' : undefined}>
-              {view === 'favorites' ? (
-                status === 'ready' && account.status === 'ready' ? (
-                  `${minorCount(favoriteItems.length)} в избранном`
-                ) : (
-                  'Ваши сохранённые майноры'
-                )
-              ) : status === 'ready' ? (
-                <>
-                  {minorCount(isDemoCatalog ? 30 : items.length)} <span aria-hidden="true">·</span>{' '}
-                  {reviewCount(isDemoCatalog ? 200 : totalReviews)}
-                </>
-              ) : (
-                'Майноры Вышки'
-              )}
-            </p>
-            <h1 id="catalog-title">
-              {view === 'favorites'
-                ? 'Избранное'
-                : view === 'reviews'
-                  ? 'Мои отзывы'
-                  : 'Список дисциплин'}
-            </h1>
-            <button
-              type="button"
-              className={styles.heroReviewLink}
-              onClick={
-                view === 'favorites'
-                  ? () => {
-                      if (favoriteItems.length)
-                        document
-                          .getElementById('catalog-results')
-                          ?.scrollIntoView({ block: 'start' });
-                      else changeView('disciplines');
-                    }
-                  : undefined
-              }
-            >
-              {view === 'favorites'
-                ? favoriteItems.length
-                  ? 'Сравни и выбери свой'
-                  : 'Найди майнор и сохрани его'
-                : 'Уже прошёл майнор? Расскажи, как было'}{' '}
-              <Icon icon={ArrowRight} size={16} />
-            </button>
-          </div>
-          {view === 'favorites' ? (
-            <FavoriteHeroCards items={favoriteItems} />
-          ) : (
-            <HeroReviews
-              key={heroReviews.map((review) => review.id).join('|')}
-              reviews={heroReviews}
-              paused={heroHovered || heroFocused}
-            />
-          )}
-        </section>
         {notice && (
           <p className={styles.notice} role="status">
             {notice}
           </p>
         )}
-        {status === 'ready' && view === 'disciplines' && account.status === 'error' && (
-          <div className={styles.notice} role="alert">
-            <p>Не удалось загрузить избранное и ваши отзывы. {errorMessage(account.error)}</p>
-            {isUnauthorized(account.error) ? (
-              <Button href="/" variant="secondary">
-                Войти
-              </Button>
-            ) : (
-              <Button variant="secondary" onClick={account.retry}>
-                Повторить
-              </Button>
-            )}
-          </div>
-        )}
-
-        {view !== 'reviews' && (
+        {view === 'reviews' ? (
+          <MyReviewsPage
+            reviews={account.reviews}
+            status={account.reviewsStatus}
+            error={account.reviewsError}
+            onRetry={account.retry}
+            items={items}
+            catalogStatus={status}
+            onCatalogRetry={retry}
+            preview={
+              isDemoCatalog
+                ? personalReviewPreview(
+                    new URLSearchParams(window.location.search).get('reviewPreview'),
+                  )
+                : null
+            }
+          />
+        ) : (
           <>
+            <section
+              className={cx(
+                styles.hero,
+                view === 'favorites' && styles.heroFavorites,
+                view === 'favorites' && !favoriteItems.length && styles.heroFavoritesEmpty,
+              )}
+              aria-labelledby="catalog-title"
+              onMouseEnter={() => setHeroHovered(true)}
+              onMouseLeave={() => setHeroHovered(false)}
+              onFocusCapture={() => setHeroFocused(true)}
+              onBlurCapture={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setHeroFocused(false);
+              }}
+            >
+              <div className={styles.heroCopy}>
+                <p className={styles.eyebrow} role={view === 'favorites' ? 'status' : undefined}>
+                  {view === 'favorites' ? (
+                    status === 'ready' && account.favoritesStatus === 'ready' ? (
+                      `${minorCount(favoriteItems.length)} в избранном`
+                    ) : (
+                      'Ваши сохранённые майноры'
+                    )
+                  ) : status === 'ready' ? (
+                    <>
+                      {minorCount(isDemoCatalog ? 30 : items.length)}{' '}
+                      <span aria-hidden="true">·</span>{' '}
+                      {reviewCount(isDemoCatalog ? 200 : totalReviews)}
+                    </>
+                  ) : (
+                    'Майноры Вышки'
+                  )}
+                </p>
+                <h1 id="catalog-title">
+                  {view === 'favorites' ? 'Избранное' : 'Список дисциплин'}
+                </h1>
+                <button
+                  type="button"
+                  className={styles.heroReviewLink}
+                  onClick={
+                    view === 'favorites'
+                      ? () => {
+                          if (favoriteItems.length)
+                            document
+                              .getElementById('catalog-results')
+                              ?.scrollIntoView({ block: 'start' });
+                          else changeView('disciplines');
+                        }
+                      : undefined
+                  }
+                >
+                  {view === 'favorites'
+                    ? favoriteItems.length
+                      ? 'Сравни и выбери свой'
+                      : 'Найди майнор и сохрани его'
+                    : 'Уже прошёл майнор? Расскажи, как было'}{' '}
+                  <Icon icon={ArrowRight} size={16} />
+                </button>
+              </div>
+              {view === 'favorites' ? (
+                <FavoriteHeroCards items={favoriteItems} />
+              ) : (
+                <HeroReviews
+                  key={heroReviews.map((review) => review.id).join('|')}
+                  reviews={heroReviews}
+                  paused={heroHovered || heroFocused}
+                />
+              )}
+            </section>
+            {status === 'ready' &&
+              view === 'disciplines' &&
+              account.favoritesStatus === 'error' && (
+                <div className={styles.notice} role="alert">
+                  <p>Не удалось загрузить избранное. {errorMessage(account.favoritesError)}</p>
+                  {isUnauthorized(account.favoritesError) ? (
+                    <Button href="/" variant="secondary">
+                      Войти
+                    </Button>
+                  ) : (
+                    <Button variant="secondary" onClick={account.retry}>
+                      Повторить
+                    </Button>
+                  )}
+                </div>
+              )}
+
             <div className={styles.searchRow}>
               <SearchField
                 id={searchId}
@@ -281,136 +294,108 @@ export function CatalogPage() {
               loading={status === 'loading'}
               onChange={updateFilters}
             />
-          </>
-        )}
 
-        <section
-          id="catalog-results"
-          className={styles.results}
-          aria-label={view === 'reviews' ? 'Ваши отзывы' : 'Дисциплины'}
-          aria-busy={loading}
-        >
-          {loading ? (
-            <>
-              <p className={styles.loadingMessage} role="status">
-                Ищем подходящие дисциплины…
-              </p>
-              <CatalogSkeleton />
-            </>
-          ) : viewError ? (
-            <div className={styles.empty}>
-              <h2>
-                {isUnauthorized(viewError) ? 'Войдите в аккаунт' : 'Не удалось загрузить список'}
-              </h2>
-              <p>{errorMessage(viewError)}</p>
-              {isUnauthorized(viewError) ? (
-                <Button href="/" variant="secondary">
-                  На страницу входа
-                </Button>
+            <section
+              id="catalog-results"
+              className={styles.results}
+              aria-label="Дисциплины"
+              aria-busy={loading}
+            >
+              {loading ? (
+                <>
+                  <p className={styles.loadingMessage} role="status">
+                    Ищем подходящие дисциплины…
+                  </p>
+                  <CatalogSkeleton />
+                </>
+              ) : viewError ? (
+                <div className={styles.empty}>
+                  <h2>
+                    {isUnauthorized(viewError)
+                      ? 'Войдите в аккаунт'
+                      : 'Не удалось загрузить список'}
+                  </h2>
+                  <p>{errorMessage(viewError)}</p>
+                  {isUnauthorized(viewError) ? (
+                    <Button href="/" variant="secondary">
+                      На страницу входа
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      onClick={status === 'error' ? retry : account.retry}
+                    >
+                      Повторить загрузку
+                    </Button>
+                  )}
+                </div>
+              ) : visible.length ? (
+                <ul className={styles.grid}>
+                  {visible.map((item, index) => (
+                    <li
+                      key={item.id}
+                      tabIndex={-1}
+                      ref={index === visibleCount - PAGE_SIZE ? loadMoreFocus : undefined}
+                    >
+                      <CatalogCard
+                        item={item}
+                        favorite={favorites.includes(item.id)}
+                        favoriteDisabled={
+                          account.favoritesStatus !== 'ready' ||
+                          account.pendingIds.includes(item.id)
+                        }
+                        onFavorite={() => void toggleFavorite(item.id)}
+                      />
+                    </li>
+                  ))}
+                </ul>
               ) : (
-                <Button variant="secondary" onClick={status === 'error' ? retry : account.retry}>
-                  Повторить загрузку
-                </Button>
-              )}
-            </div>
-          ) : view === 'reviews' ? (
-            validReviews.length ? (
-              <div className={styles.myReviews}>
-                {validReviews.map((review) => (
-                  <article key={review.id} className={styles.myReview}>
-                    <p className={styles.savedLabel}>{REVIEW_STATUS_LABELS[review.status]}</p>
-                    <h2>
-                      {items.find((item) => item.id === review.disciplineId)?.title ??
-                        'Название дисциплины недоступно'}
-                    </h2>
-                    <dl className={styles.criteria}>
-                      {REVIEW_CRITERIA.map(({ key, label }) => (
-                        <div key={key}>
-                          <dt>{label}</dt>
-                          <dd>{review.ratings[key]} / 5</dd>
-                        </div>
-                      ))}
-                    </dl>
-                    {review.experience && <p>{review.experience}</p>}
-                    {review.advice && (
-                      <p>
-                        <strong>Совет:</strong> {review.advice}
-                      </p>
-                    )}
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className={styles.empty}>
-                <Icon icon={Pencil} size={24} className={styles.emptyIcon} />
-                <h2>Пока нет ваших отзывов</h2>
-                <p>Здесь появятся ваши отзывы о дисциплинах.</p>
-              </div>
-            )
-          ) : visible.length ? (
-            <ul className={styles.grid}>
-              {visible.map((item, index) => (
-                <li
-                  key={item.id}
-                  tabIndex={-1}
-                  ref={index === visibleCount - PAGE_SIZE ? loadMoreFocus : undefined}
-                >
-                  <CatalogCard
-                    item={item}
-                    favorite={favorites.includes(item.id)}
-                    favoriteDisabled={
-                      account.status !== 'ready' || account.pendingIds.includes(item.id)
-                    }
-                    onFavorite={() => void toggleFavorite(item.id)}
+                <div className={styles.empty}>
+                  <Icon
+                    icon={view === 'favorites' && !source.length ? Heart : Search}
+                    size={24}
+                    className={styles.emptyIcon}
                   />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className={styles.empty}>
-              <Icon
-                icon={view === 'favorites' && !source.length ? Heart : Search}
-                size={24}
-                className={styles.emptyIcon}
-              />
-              <h2>
-                {view === 'favorites' && !source.length
-                  ? 'Сохраните то, что интересно'
-                  : 'Пока ничего не нашлось'}
-              </h2>
-              <p>
-                {view === 'favorites' && !source.length
-                  ? 'Нажмите на сердечко в карточке — дисциплина появится здесь.'
-                  : 'Попробуйте другое название или уберите часть фильтров. Иногда достаточно одного слова.'}
-              </p>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  resetFilters();
-                  if (view === 'favorites' && !source.length) changeView('disciplines');
-                }}
-              >
-                {view === 'favorites' && !source.length
-                  ? 'Посмотреть дисциплины'
-                  : 'Сбросить поиск и фильтры'}
-              </Button>
-            </div>
-          )}
-        </section>
-        {status === 'ready' && view !== 'reviews' && filtered.length > 0 && (
-          <div className={styles.more}>
-            {filtered.length > visibleCount && (
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  shouldFocusMore.current = true;
-                  setVisibleCount((value) => value + PAGE_SIZE);
-                }}
-              >
-                Показать ещё дисциплины <Icon icon={ArrowDown} size={16} />
-              </Button>
+                  <h2>
+                    {view === 'favorites' && !source.length
+                      ? 'Сохраните то, что интересно'
+                      : 'Пока ничего не нашлось'}
+                  </h2>
+                  <p>
+                    {view === 'favorites' && !source.length
+                      ? 'Нажмите на сердечко в карточке — дисциплина появится здесь.'
+                      : 'Попробуйте другое название или уберите часть фильтров. Иногда достаточно одного слова.'}
+                  </p>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      resetFilters();
+                      if (view === 'favorites' && !source.length) changeView('disciplines');
+                    }}
+                  >
+                    {view === 'favorites' && !source.length
+                      ? 'Посмотреть дисциплины'
+                      : 'Сбросить поиск и фильтры'}
+                  </Button>
+                </div>
+              )}
+            </section>
+            {status === 'ready' && filtered.length > 0 && (
+              <div className={styles.more}>
+                {filtered.length > visibleCount && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      shouldFocusMore.current = true;
+                      setVisibleCount((value) => value + PAGE_SIZE);
+                    }}
+                  >
+                    Показать ещё дисциплины <Icon icon={ArrowDown} size={16} />
+                  </Button>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
       </main>
     </div>

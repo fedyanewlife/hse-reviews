@@ -78,7 +78,17 @@ export function parseReviews(raw: string | null): UserReview[] {
           })
         );
       })
-      .map((review) => ({ ...review, status: 'local' as const }));
+      .map((review) => ({
+        id: review.id,
+        disciplineId: review.disciplineId,
+        ratings: review.ratings,
+        experience: review.experience,
+        advice: review.advice,
+        status: 'local' as const,
+        ...(typeof review.createdAt === 'string' && Number.isFinite(Date.parse(review.createdAt))
+          ? { createdAt: review.createdAt }
+          : {}),
+      }));
   } catch {
     return [];
   }

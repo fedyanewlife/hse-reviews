@@ -14,7 +14,7 @@ export function App() {
     /* Invalid URL is handled as a missing discipline. */
   }
   useEffect(() => {
-    if (!isDiscipline) document.title = `${isCatalog ? 'Дисциплины' : 'Вход'} — ОтзоВышка`;
+    if (!isDiscipline && !isCatalog) document.title = 'Вход — ОтзоВышка';
   }, [isCatalog, isDiscipline]);
   return match ? (
     <DisciplinePage key={disciplineId} disciplineId={disciplineId} />
