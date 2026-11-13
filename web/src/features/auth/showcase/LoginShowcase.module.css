@@ -1,0 +1,317 @@
+.showcase {
+  --showcase-scale: 1.25;
+  --slow-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --bubble-ease: cubic-bezier(0.25, 0.6, 0.3, 1);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px clamp(24px, 3vw, 48px) 64px;
+  overflow: hidden;
+  transition: background-color 1200ms var(--slow-ease);
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    155deg,
+    var(--layer-bg) 10%,
+    oklch(from var(--layer-bg) calc(l - 0.02) calc(c + 0.035) calc(h + 45)) 100%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1200ms var(--slow-ease);
+}
+
+.layerActive {
+  opacity: 1;
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(24px * var(--showcase-scale));
+  width: 100%;
+  max-width: calc(580px * var(--showcase-scale));
+}
+
+/* Облачка с отзывами */
+
+.bubblesTop,
+.bubblesBottom {
+  position: relative;
+  width: 100%;
+  min-height: calc(120px * var(--showcase-scale));
+}
+
+/* Положение, ширину и хвостик каждого облачка задают переменные из данных витрины. */
+.bubble {
+  position: absolute;
+  left: clamp(0px, var(--x), calc(100% - var(--width)));
+  display: flex;
+  flex-direction: column;
+  gap: calc(6px * var(--showcase-scale));
+  box-sizing: border-box;
+  width: var(--width);
+  padding: calc(14px * var(--showcase-scale)) calc(18px * var(--showcase-scale))
+    calc(16px * var(--showcase-scale));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: calc(22px * var(--showcase-scale));
+  box-shadow:
+    0 1px 2px rgba(23, 23, 28, 0.04),
+    0 8px 20px -10px rgba(23, 23, 28, 0.14);
+  opacity: 0;
+  /* Сохраняем слой между появлениями, чтобы в конце scale не менялась растеризация текста. */
+  will-change: transform, opacity;
+  transition:
+    opacity 1100ms var(--bubble-ease),
+    transform 1100ms var(--bubble-ease);
+}
+
+.bubblesTop .bubble {
+  bottom: calc(var(--offset) * var(--showcase-scale));
+  transform: translate3d(0, 10px, 0) scale(0.92);
+  transform-origin: calc(var(--tail-x) + 6px) 100%;
+}
+
+.bubblesBottom .bubble {
+  top: calc(var(--offset) * var(--showcase-scale));
+  transform: translate3d(0, -10px, 0) scale(0.92);
+  transform-origin: calc(var(--tail-x) + 6px) 0%;
+}
+
+.bubblesTop .bubbleVisible,
+.bubblesBottom .bubbleVisible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.tail {
+  position: absolute;
+  left: var(--tail-x);
+  width: 12px;
+  height: 12px;
+  background: var(--surface);
+  transform: rotate(45deg);
+}
+
+.bubblesTop .tail {
+  bottom: -6px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-bottom-right-radius: 3px;
+}
+
+.bubblesBottom .tail {
+  top: -6px;
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  border-top-left-radius: 3px;
+}
+
+.bubbleRating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: 700 calc(13px * var(--showcase-scale)) / 1 var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.bubbleText {
+  font: 500 calc(14px * var(--showcase-scale)) / 1.45 var(--font-body);
+  color: var(--text);
+  text-wrap: pretty;
+}
+
+.star {
+  color: var(--star);
+  fill: var(--star);
+}
+
+.bubbleRating > svg {
+  width: calc(14px * var(--showcase-scale));
+  height: calc(14px * var(--showcase-scale));
+}
+
+/* Поиск и карточка майнора */
+
+.center {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: calc(20px * var(--showcase-scale));
+  width: 100%;
+  max-width: calc(480px * var(--showcase-scale));
+}
+
+.center .search {
+  --border-strong: var(--border);
+  --h: calc(56px * var(--showcase-scale));
+  --pl: calc(46px * var(--showcase-scale));
+  --fs: calc(18px * var(--showcase-scale));
+
+  pointer-events: none;
+}
+
+.search > svg {
+  left: calc(14px * var(--showcase-scale));
+  width: calc(22px * var(--showcase-scale));
+  height: calc(22px * var(--showcase-scale));
+}
+
+.cards {
+  position: relative;
+  display: grid;
+}
+
+/* Общая высота всех кадров сохраняет положение карточки и облачков при смене майнора и темы. */
+.card {
+  position: relative;
+  grid-area: 1 / 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-l);
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 700ms var(--slow-ease),
+    transform 700ms var(--slow-ease);
+}
+
+.cardActive {
+  z-index: 1;
+}
+
+.cardVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cardLine {
+  display: block;
+  height: calc(4px * var(--showcase-scale));
+  flex: none;
+  background: var(--dir-color);
+}
+
+.cardBody {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr auto;
+  column-gap: calc(12px * var(--showcase-scale));
+  row-gap: calc(18px * var(--showcase-scale));
+  padding: calc(24px * var(--showcase-scale)) calc(24px * var(--showcase-scale))
+    calc(22px * var(--showcase-scale));
+}
+
+.cardMark {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: calc(-6px * var(--showcase-scale));
+}
+
+.cardMark > :first-child {
+  flex-shrink: 0;
+  font-size: calc(13px * var(--showcase-scale));
+}
+
+.cardFaculty {
+  min-width: 0;
+  max-width: 75%;
+  font: 600 calc(13px * var(--showcase-scale)) / 1.35 var(--font-body);
+  text-align: right;
+  overflow-wrap: anywhere;
+  color: var(--logo);
+}
+
+.cardTitle {
+  grid-column: 1 / -1;
+  margin: 0;
+  font: 600 calc(28px * var(--showcase-scale)) / 1.2 var(--font-display);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+.cardTitleLong {
+  font-size: calc(24px * var(--showcase-scale));
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 500 calc(17px * var(--showcase-scale)) / 1.4 var(--font-body);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ratingValue {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cardMeta svg {
+  width: calc(20px * var(--showcase-scale));
+  height: calc(20px * var(--showcase-scale));
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: -8px -8px -8px 0;
+  color: var(--text-2);
+}
+
+.cardAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(36px * var(--showcase-scale));
+  height: calc(36px * var(--showcase-scale));
+}
+
+.cardAction > svg {
+  width: calc(18px * var(--showcase-scale));
+  height: calc(18px * var(--showcase-scale));
+}
+
+@media (max-width: 1279px) {
+  .showcase {
+    --showcase-scale: 1.1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble {
+    will-change: auto;
+  }
+
+  .showcase,
+  .layer,
+  .bubble,
+  .card {
+    transition: none;
+  }
+}

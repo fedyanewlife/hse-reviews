@@ -1,0 +1,51 @@
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 var(--fs) / 1.3 var(--font-body);
+  color: var(--text);
+}
+
+.s {
+  --fs: 13px;
+  --swatch: 10px;
+  --tint-pad: 3px 8px;
+}
+
+.m {
+  --fs: 14px;
+  --swatch: 12px;
+  --tint-pad: 5px 10px;
+}
+
+.swatch {
+  flex: none;
+  border-radius: 3px;
+  background: var(--dir-color);
+}
+
+.square .swatch {
+  width: var(--swatch);
+  height: var(--swatch);
+}
+
+.tint {
+  padding: var(--tint-pad);
+  border-radius: var(--radius-s);
+  background: var(--dir-bg);
+}
+
+.tint .swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.line {
+  gap: 10px;
+}
+
+.line .swatch {
+  width: 24px;
+  height: var(--stripe-w);
+}

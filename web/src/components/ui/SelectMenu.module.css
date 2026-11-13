@@ -1,0 +1,97 @@
+.sort {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  margin-left: auto;
+}
+.sortTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  min-height: 46px;
+  padding-inline: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--text);
+  font: var(--weight-semibold) var(--type-sm)/var(--lh-sm) var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+.sortTrigger:hover,
+.sortTrigger[aria-expanded='true'] {
+  background: var(--surface-subtle);
+}
+.sortCaption {
+  flex: none;
+  color: var(--text-2);
+  font-weight: var(--weight-medium);
+}
+.sortValue {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sortChevron {
+  flex: none;
+  color: var(--text-2);
+}
+.sortTrigger[aria-expanded='true'] .sortChevron {
+  transform: rotate(180deg);
+}
+.sortTrigger:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+.sortPopup {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  width: max(100%, 232px);
+  max-width: calc(100vw - var(--space-8));
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+}
+.sortOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--control-h);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-m);
+  background: none;
+  color: var(--text);
+  font: var(--weight-medium) var(--type-sm)/var(--lh-sm) var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+.sortOption[aria-selected='true'] {
+  background: var(--surface-subtle);
+  font-weight: var(--weight-semibold);
+}
+.sortOption:hover {
+  background: var(--surface-muted);
+}
+.sortOption:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+}
+.sortOption > svg {
+  flex: none;
+  color: var(--logo);
+}
+@media (max-width: 768px) {
+  .sortCaption {
+    display: none;
+  }
+}
