@@ -6,6 +6,7 @@ import type { Discipline, UserReview } from '../catalog/catalogTypes';
 import { personalReviewState, REVIEW_STATES } from './myReviewModel';
 import { OwnReviewCard, ReviewStars } from './OwnReviewCard';
 import styles from './MyReviewsPage.module.css';
+import { reviewFormHref } from '../review-form/reviewFormModel';
 
 type Props = {
   reviews: readonly UserReview[];
@@ -47,9 +48,9 @@ export function MyReviewsPage({
               Посмотреть свой отзыв <Icon icon={ArrowRight} size={16} />
             </a>
           ) : status === 'ready' ? (
-            <button type="button" className={styles.heroLink}>
+            <a href={reviewFormHref()} className={styles.heroLink}>
               Рассказать о своём майноре <Icon icon={ArrowRight} size={16} />
-            </button>
+            </a>
           ) : (
             <p className={styles.heroHint}>Твои оценки и впечатления о майноре</p>
           )}
@@ -167,6 +168,11 @@ export function MyReviewsPage({
                     <p>{current.moderationNote}</p>
                   </div>
                 )}
+                {current.status === 'rejected' && !isPreview && (
+                  <Button href={reviewFormHref(current.disciplineId)} variant="secondary" size="s">
+                    Исправить отзыв
+                  </Button>
+                )}
                 <div className={styles.oneMinor}>
                   <Icon icon={ShieldCheck} size={19} />
                   <p>
@@ -185,7 +191,7 @@ export function MyReviewsPage({
               Расскажи о сложности, нагрузке, интересе и пользе. Твой отзыв поможет другим студентам
               сделать выбор.
             </p>
-            <Button>
+            <Button href={reviewFormHref()}>
               Оставить отзыв <Icon icon={ArrowRight} size={16} />
             </Button>
             <span className={styles.emptyHint}>Можно оставить отзыв только об одном майноре.</span>

@@ -85,6 +85,17 @@ export function parseReviews(raw: string | null): UserReview[] {
         experience: review.experience,
         advice: review.advice,
         status: 'local' as const,
+        ...(['completed', 'earlier', 'studying'].includes(review.completionStatus ?? '') &&
+        (review.completionStatus !== 'completed' ||
+          (Number.isInteger(review.completionYear) &&
+            (review.completionYear ?? 0) >= 1900 &&
+            (review.completionYear ?? 0) <= 2200))
+          ? {
+              completionStatus: review.completionStatus,
+              completionYear:
+                review.completionStatus === 'completed' ? review.completionYear : null,
+            }
+          : {}),
         ...(typeof review.createdAt === 'string' && Number.isFinite(Date.parse(review.createdAt))
           ? { createdAt: review.createdAt }
           : {}),

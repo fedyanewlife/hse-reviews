@@ -43,6 +43,8 @@ export type ReviewInput = {
   ratings: Record<ReviewCriterion, number>;
   experience: string;
   advice: string;
+  completionStatus?: CompletionStatus;
+  completionYear?: number | null;
 };
 
 export type ReviewStatus = 'local' | 'pending' | 'published' | 'rejected';
@@ -53,7 +55,5 @@ export type UserReview = ReviewInput & {
   publishedAt?: string | null;
   helpfulCount?: number | null;
   moderationNote?: string | null;
-  completionStatus?: CompletionStatus;
-  completionYear?: number | null;
 };
 export type ReviewExcerpt = Discipline['reviews'][number];

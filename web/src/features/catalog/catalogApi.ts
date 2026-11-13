@@ -161,7 +161,8 @@ export function decodePublishedReview(value: unknown, disciplineId: string): Pub
 export function reviewPayload(input: ReviewInput) {
   return {
     minor_id: serverId(input.disciplineId),
-    completion_year: null,
+    completion_year: input.completionStatus === 'completed' ? (input.completionYear ?? null) : null,
+    ...(input.completionStatus ? { completion_status: input.completionStatus } : {}),
     difficulty_rating: input.ratings.difficulty,
     workload_rating: input.ratings.workload,
     interest_rating: input.ratings.interest,

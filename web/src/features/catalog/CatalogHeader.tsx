@@ -10,8 +10,9 @@ import { useTheme } from '../theme/useTheme';
 import { catalogRepository, isDemoCatalog } from './catalogRepository';
 import type { CatalogView } from './catalogTypes';
 import styles from './CatalogPage.module.css';
+import { reviewDraftStorageKey } from '../review-form/reviewFormModel';
 
-export const catalogViewHref = (view: CatalogView) =>
+const catalogViewHref = (view: CatalogView) =>
   view === 'disciplines' ? '/catalog' : `/catalog?view=${view}`;
 
 export function CatalogHeader({
@@ -29,6 +30,11 @@ export function CatalogHeader({
     setLoggingOut(true);
     try {
       await catalogRepository.logout();
+      try {
+        sessionStorage.removeItem(reviewDraftStorageKey(false));
+      } catch {
+        /* Logout also works when browser storage is unavailable. */
+      }
       window.location.assign('/');
     } catch (error) {
       onError(errorMessage(error));

@@ -15,6 +15,7 @@ import { HeroReviews } from './HeroReviews';
 import { FavoriteHeroCards } from './FavoriteHeroCards';
 import { MyReviewsPage } from '../my-reviews/MyReviewsPage';
 import { personalReviewPreview } from '../my-reviews/myReviewDemo';
+import { reviewFormHref } from '../review-form/reviewFormModel';
 import {
   minorCount,
   reviewCount,
@@ -199,28 +200,34 @@ export function CatalogPage() {
                 <h1 id="catalog-title">
                   {view === 'favorites' ? 'Избранное' : 'Список дисциплин'}
                 </h1>
-                <button
-                  type="button"
-                  className={styles.heroReviewLink}
-                  onClick={
-                    view === 'favorites'
-                      ? () => {
-                          if (favoriteItems.length)
-                            document
-                              .getElementById('catalog-results')
-                              ?.scrollIntoView({ block: 'start' });
-                          else changeView('disciplines');
-                        }
-                      : undefined
-                  }
-                >
-                  {view === 'favorites'
-                    ? favoriteItems.length
-                      ? 'Сравни и выбери свой'
-                      : 'Найди майнор и сохрани его'
-                    : 'Уже прошёл майнор? Расскажи, как было'}{' '}
-                  <Icon icon={ArrowRight} size={16} />
-                </button>
+                {view === 'disciplines' ? (
+                  <a className={styles.heroReviewLink} href={reviewFormHref()}>
+                    Уже прошёл майнор? Расскажи, как было <Icon icon={ArrowRight} size={16} />
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.heroReviewLink}
+                    onClick={
+                      view === 'favorites'
+                        ? () => {
+                            if (favoriteItems.length)
+                              document
+                                .getElementById('catalog-results')
+                                ?.scrollIntoView({ block: 'start' });
+                            else changeView('disciplines');
+                          }
+                        : undefined
+                    }
+                  >
+                    {view === 'favorites'
+                      ? favoriteItems.length
+                        ? 'Сравни и выбери свой'
+                        : 'Найди майнор и сохрани его'
+                      : 'Уже прошёл майнор? Расскажи, как было'}{' '}
+                    <Icon icon={ArrowRight} size={16} />
+                  </button>
+                )}
               </div>
               {view === 'favorites' ? (
                 <FavoriteHeroCards items={favoriteItems} />

@@ -26,6 +26,7 @@ import { DisciplineReviewCard } from './DisciplineReviewCard';
 import type { ReviewAudience, ReviewSort } from './disciplineTypes';
 import { useHelpfulVotes } from './useHelpfulVotes';
 import styles from './DisciplinePage.module.css';
+import { reviewFormHref } from '../review-form/reviewFormModel';
 
 export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
   const catalog = useCatalog(null);
@@ -367,7 +368,7 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                     <Button
                       fullWidth
                       className={styles.writeButton}
-                      title="Форма отзыва появится позже"
+                      href={reviewFormHref(disciplineId)}
                     >
                       <Icon icon={Pencil} size={17} />
                       Оставить отзыв
@@ -440,7 +441,7 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                 disabled={favoriteDisabled}
                 onClick={() => void toggleFavorite()}
               />
-              <Button title="Форма отзыва появится позже">
+              <Button href={reviewFormHref(disciplineId)}>
                 <Icon icon={Pencil} size={17} />
                 Оставить отзыв
               </Button>
