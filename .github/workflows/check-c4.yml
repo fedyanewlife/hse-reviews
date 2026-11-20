@@ -1,0 +1,25 @@
+name: Проверка C4-диаграмм
+
+on:
+  pull_request:
+    branches: [main]
+    paths: [docs/c4/**]
+
+permissions: {contents: read}
+
+jobs:
+  check-c4:
+    name: Проверка экспорта C4-диаграмм
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - working-directory: docs/c4
+        run: |
+          committed=$(mktemp -d)/diagrams
+          mv diagrams "$committed"
+          docker compose run --rm --no-TTY c4-export
+
+          if ! diff -qr "$committed" diagrams; then
+            echo "::error::Сохранённые C4-диаграммы не соответствуют текущей модели."
+            exit 1
+          fi
