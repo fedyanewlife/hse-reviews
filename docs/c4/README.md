@@ -6,6 +6,10 @@
 
 ![Контекст](diagrams/1-context.svg)
 
+![Контейнеры](diagrams/2-containers.svg)
+
+![Компоненты](diagrams/3-components.svg)
+
 ## Экспорт диаграмм в SVG
 
 При запущенном Docker выполните команду из корня репозитория.
