@@ -10,10 +10,22 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "${DB_USER}", "-d", "${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
+
+  migrations:
+    image: ghcr.io/pressly/goose:v3.30.1
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: "host=db port=5432 user=${DB_USER} password=${DB_PASSWORD} dbname=${DB_NAME} sslmode=disable"
+    volumes:
+      - ./migrations:/migrations:ro
+    command: ["up"]
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.7.4
