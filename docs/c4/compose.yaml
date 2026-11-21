@@ -1,0 +1,5 @@
+services:
+  c4-export:
+    image: structurizr/structurizr:2026.10.26-playwright
+    command: [export, -workspace, /usr/local/structurizr/workspace.dsl, -format, svg, -output, /usr/local/structurizr/diagrams]
+    volumes: [.:/usr/local/structurizr]
