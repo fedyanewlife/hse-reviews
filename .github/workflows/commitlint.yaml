@@ -1,0 +1,16 @@
+name: Проверка коммитов
+
+on: [pull_request]
+
+permissions: {contents: read}
+
+jobs:
+  commitlint:
+    name: Соответствие Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v7
+        with: {node-version: 24}
+      - run: npx --yes @commitlint/cli@21 --default-config --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
