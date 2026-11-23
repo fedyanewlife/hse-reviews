@@ -11,6 +11,19 @@ workspace "ОтзоВышка" {
         lecturer -> hseReviews "Читает отзывы и оставляет жалобы" "" "Связь"
         admin -> hseReviews "Модерирует отзывы и обрабатывает жалобы" "" "Связь"
         hseReviews -> hseAuth "Использует для аутентификации пользователей" "" "Связь"
+
+        !element hseReviews {
+            web = container "Веб-интерфейс" "Предоставляет пользователям доступ к функциям ОтзоВышки через браузер." "React, TypeScript" "Веб-интерфейс"
+            backend = container "Бэкенд" "Предоставляет API ОтзоВышки и управляет пользовательскими сессиями." "Go"
+            database = container "База данных" "Хранит каталог, отзывы, пользовательские сессии и другие данные ОтзоВышки." "PostgreSQL" "База данных"
+        }
+
+        student -> web "Читает и оставляет отзывы" "" "Связь"
+        lecturer -> web "Читает отзывы и оставляет жалобы" "" "Связь"
+        admin -> web "Модерирует отзывы и обрабатывает жалобы" "" "Связь"
+        web -> backend "Выполняет API-запросы" "JSON/HTTP" "Связь"
+        backend -> database "Читает и записывает данные" "SQL" "Связь"
+        backend -> hseAuth "Использует для аутентификации пользователей" "OpenID Connect" "Связь"
     }
 
     views {
@@ -21,9 +34,17 @@ workspace "ОтзоВышка" {
             autoLayout lr
         }
 
+        container hseReviews "2-container" {
+            title "[Контейнер] ОтзоВышка"
+            description "Диаграмма контейнера для сервиса «ОтзоВышка»."
+            include student lecturer admin web backend database hseAuth
+            autoLayout lr
+        }
+
         terminology {
             person "Человек"
             softwareSystem "Программная система"
+            container "Контейнер"
         }
 
         styles {
@@ -70,6 +91,23 @@ workspace "ОтзоВышка" {
                 stroke #BF101D
                 strokeWidth 8
                 fontSize 32
+            }
+
+            element "Container" {
+                shape RoundedBox
+                background #FFFFFF
+                color #1168BD
+                stroke #1168BD
+                strokeWidth 8
+                fontSize 28
+            }
+
+            element "Веб-интерфейс" {
+                shape WebBrowser
+            }
+
+            element "База данных" {
+                shape Cylinder
             }
 
             relationship "Связь" {
