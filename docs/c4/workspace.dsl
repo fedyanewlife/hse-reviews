@@ -6,7 +6,12 @@ workspace "ОтзоВышка" {
 
         hseReviews = softwareSystem "ОтзоВышка" "Сервис отзывов для выбора дисциплин и преподавателей в ВШЭ." "ОтзоВышка" {
             web = container "Веб-интерфейс" "Предоставляет пользователям доступ к функциям ОтзоВышки через браузер." "React, TypeScript" "Веб-интерфейс"
-            backend = container "Бэкенд" "Предоставляет API ОтзоВышки и управляет пользовательскими сессиями." "Go" "Бэкенд"
+            backend = container "Бэкенд" "Предоставляет API ОтзоВышки и управляет пользовательскими сессиями." "Go" "Бэкенд" {
+                auth = component "API входа" "Управляет входом и сессиями." "Go, OIDC"
+                minorCatalog = component "API каталога майноров" "Возвращает список и карточки майноров." "Go"
+                reviews = component "API отзывов" "Принимает отзывы на проверку." "Go"
+                dataAccess = component "Доступ к данным" "Выполняет запросы к PostgreSQL." "Go, pgx"
+            }
             database = container "База данных" "Хранит каталог, отзывы, пользовательские сессии и другие данные ОтзоВышки." "PostgreSQL" "База данных"
         }
         hseAuth = softwareSystem "HSE Auth" "Провайдер входа для пользователей ВШЭ." "HSE Auth"
@@ -22,6 +27,15 @@ workspace "ОтзоВышка" {
         web -> backend "Выполняет API-запросы" "JSON/HTTP" "Связь"
         backend -> database "Читает и записывает данные" "SQL" "Связь"
         backend -> hseAuth "Использует для аутентификации пользователей" "OpenID Connect" "Связь"
+
+        web -> auth "Вход и выход" "HTTP" "Связь"
+        web -> minorCatalog "Запрашивает майноры" "JSON/HTTP" "Связь"
+        web -> reviews "Читает и отправляет отзывы" "JSON/HTTP" "Связь"
+        auth -> hseAuth "Обменивает код на токены" "OpenID Connect" "Связь"
+        auth -> dataAccess "Сохраняет пользователей и сессии" "" "Связь"
+        minorCatalog -> dataAccess "Читает каталог" "" "Связь"
+        reviews -> dataAccess "Читает и сохраняет отзывы" "" "Связь"
+        dataAccess -> database "Читает и записывает данные" "SQL" "Связь"
     }
 
     views {
@@ -39,10 +53,18 @@ workspace "ОтзоВышка" {
             autoLayout lr
         }
 
+        component backend "3-component" {
+            title "[Компоненты] ОтзоВышка"
+            description "Диаграмма компонента для сервиса «ОтзоВышка»."
+            include *
+            autoLayout lr
+        }
+
         terminology {
             person "Человек"
             softwareSystem "Программная система"
             container "Контейнер"
+            component "Компонент"
         }
 
         styles {
@@ -102,6 +124,15 @@ workspace "ОтзоВышка" {
 
             element "Бэкенд" {
                 shape Shell
+                background #FFFFFF
+                color #1168BD
+                stroke #1168BD
+                strokeWidth 8
+                fontSize 28
+            }
+
+            element "Component" {
+                shape Component
                 background #FFFFFF
                 color #1168BD
                 stroke #1168BD
