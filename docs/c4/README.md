@@ -6,6 +6,8 @@
 
 ![Контекст](diagrams/1-context.svg)
 
+## Контейнер
+
 ![Контейнер](diagrams/2-container.svg)
 
 ## Экспорт диаграмм в SVG
