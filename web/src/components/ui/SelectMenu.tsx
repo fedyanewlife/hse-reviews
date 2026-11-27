@@ -4,8 +4,10 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
 } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
+import { cx } from '../../lib/cx';
 import { Icon } from './Icon';
 import styles from './SelectMenu.module.css';
 
@@ -15,12 +17,14 @@ export function SelectMenu<T extends string>({
   options,
   label = 'Сортировка',
   caption = 'Сначала:',
+  className,
 }: {
   value: T;
   onChange: (value: T) => void;
-  options: readonly { value: T; label: string }[];
+  options: readonly { value: T; label: string; triggerLabel?: string; icon?: ReactNode }[];
   label?: string;
   caption?: string;
+  className?: string;
 }) {
   const selectedOption = options.find((option) => option.value === value) ?? options[0];
   const selectedIndex = options.findIndex((option) => option.value === selectedOption?.value);
@@ -64,7 +68,7 @@ export function SelectMenu<T extends string>({
   if (!selectedOption) return null;
   return (
     <div
-      className={styles.sort}
+      className={cx(styles.sort, className)}
       ref={root}
       onKeyDown={navigate}
       onBlurCapture={(event) => {
@@ -85,8 +89,11 @@ export function SelectMenu<T extends string>({
           setOpen(!open);
         }}
       >
-        <span className={styles.sortCaption}>{caption}</span>
-        <span className={styles.sortValue}>{selectedOption.label}</span>
+        {caption && <span className={styles.sortCaption}>{caption}</span>}
+        {selectedOption.icon}
+        <span className={styles.sortValue}>
+          {selectedOption.triggerLabel ?? selectedOption.label}
+        </span>
         <Icon icon={ChevronDown} size={16} className={styles.sortChevron} />
       </button>
       {open && (
@@ -109,7 +116,10 @@ export function SelectMenu<T extends string>({
                 trigger.current?.focus();
               }}
             >
-              {option.label}
+              <span className={styles.sortOptionLabel}>
+                {option.icon}
+                {option.label}
+              </span>
               {value === option.value && <Icon icon={Check} size={16} />}
             </button>
           ))}

@@ -13,7 +13,7 @@ let apiErrors;
 let makeDemoRepository;
 let resolveCatalogMode;
 let heroCycle;
-const filters = { query: '', direction: 'all', faculties: [], minimumRating: 0, sort: 'reviews' };
+const filters = { query: '', direction: 'all', sort: 'reviews' };
 
 before(async () => {
   server = await createServer({
@@ -109,12 +109,10 @@ test('search supports Russian case, multiple words, faculty abbreviations and di
   );
 });
 
-test('direction, faculty, rating and search are applied together', () => {
+test('direction and search are applied together', () => {
   const result = model.selectDisciplines(items, {
     ...filters,
     direction: 'it',
-    faculties: ['Факультет компьютерных наук'],
-    minimumRating: 4.5,
     query: 'данных',
   });
   assert.deepEqual(
@@ -122,32 +120,9 @@ test('direction, faculty, rating and search are applied together', () => {
     ['data-analysis'],
   );
   assert.deepEqual(
-    model.selectDisciplines(items, { ...filters, direction: 'soc', faculties: ['Школа дизайна'] }),
+    model.selectDisciplines(items, { ...filters, direction: 'soc', query: 'данных' }),
     [],
   );
-});
-
-test('multiple faculties are combined with OR, then intersected with rating and search', () => {
-  const faculties = ['Факультет компьютерных наук', 'Высшая школа бизнеса'];
-  assert.deepEqual(
-    model
-      .selectDisciplines(items, { ...filters, faculties, minimumRating: 4 })
-      .map((item) => item.id),
-    ['data-analysis', 'management', 'business-informatics', 'statistics'],
-  );
-  assert.deepEqual(
-    model
-      .selectDisciplines(items, { ...filters, faculties, minimumRating: 4.5 })
-      .map((item) => item.id),
-    ['data-analysis'],
-  );
-  assert.deepEqual(
-    model
-      .selectDisciplines(items, { ...filters, faculties, query: 'бизнес' })
-      .map((item) => item.id),
-    ['management', 'business-informatics'],
-  );
-  assert.equal(model.selectDisciplines(items, { ...filters, faculties: [] }).length, items.length);
 });
 
 test('unknown search returns an empty result and clearing it restores the catalog', () => {
@@ -201,34 +176,11 @@ test('favorite hero takes the first three saved disciplines and promotes the nex
 test('bad or unavailable storage is recovered without crashing', () => {
   for (const raw of [null, 'broken', 'null', '{}']) {
     assert.deepEqual(model.parseFavorites(raw), []);
-    assert.deepEqual(model.parseReviews(raw), []);
   }
   assert.deepEqual(model.parseFavorites('["law", "law", 42, null, "ux-design"]'), [
     'law',
     'ux-design',
   ]);
-});
-
-test('local reviews round-trip all five ratings and reject invalid saved records', () => {
-  const review = {
-    id: 'demo-1',
-    disciplineId: 'law',
-    experience: 'Полезный курс',
-    advice: '',
-    status: 'local',
-    ratings: { difficulty: 3, workload: 4, interest: 5, usefulness: 5, recommendation: 5 },
-  };
-  assert.deepEqual(model.parseReviews(JSON.stringify([review])), [review]);
-  assert.deepEqual(
-    model.parseReviews(
-      JSON.stringify([
-        { ...review, ratings: { ...review.ratings, interest: 6 } },
-        { ...review, ratings: null },
-        { id: 12 },
-      ]),
-    ),
-    [],
-  );
 });
 
 test('Russian result and review counts use the correct forms', () => {
@@ -375,11 +327,7 @@ test('review POST matches the existing Go request body and confirms moderation s
       return json({ id: 100, status: 'pending' }, 201);
     },
   });
-  assert.deepEqual(await repository.createReview(reviewInput), {
-    ...reviewInput,
-    id: '100',
-    status: 'pending',
-  });
+  assert.equal(await repository.createReview(reviewInput), 'pending');
   const conflict = api.createApiCatalogRepository({
     fetcher: async () => json({ error: 'У вас уже есть отзыв на проверке' }, 409),
   });
@@ -389,7 +337,7 @@ test('review POST matches the existing Go request body and confirms moderation s
   );
 });
 
-test('published and personal reviews adapt nullable texts and server statuses', async () => {
+test('published review excerpts adapt nullable texts', async () => {
   const dto = {
     id: 100,
     minor_id: 42,
@@ -405,13 +353,10 @@ test('published and personal reviews adapt nullable texts and server statuses', 
   const repository = api.createApiCatalogRepository({
     fetcher: async () => json({ items: [dto] }),
   });
-  assert.deepEqual(await repository.listMyReviews(), [
-    { ...reviewInput, id: '100', experience: '', advice: 'Совет', status: 'pending' },
-  ]);
   assert.deepEqual(await repository.listReviews('42'), [{ rating: 5, text: 'Совет' }]);
 });
 
-test('unrated disciplines stay visible by default and are excluded by a rating filter', () => {
+test('unrated disciplines stay visible in the catalog', () => {
   const empty = api.decodeDiscipline({
     ...minorDto,
     rating: null,
@@ -419,7 +364,6 @@ test('unrated disciplines stay visible by default and are excluded by a rating f
     review_preview: null,
   });
   assert.equal(model.selectDisciplines([empty], filters).length, 1);
-  assert.equal(model.selectDisciplines([empty], { ...filters, minimumRating: 4 }).length, 0);
   const html = renderToStaticMarkup(
     createElement(CatalogCard, { item: empty, favorite: false, onFavorite() {} }),
   );
@@ -433,13 +377,16 @@ test('demo and API share the repository interface; demo writes stay in its own s
     getItem: (key) => data.get(key) ?? null,
     setItem: (key, value) => data.set(key, value),
   };
-  const repository = makeDemoRepository(storage, () => 'demo-id');
+  const repository = makeDemoRepository(storage);
   await repository.setFavorite('ux-design', true);
   await repository.setFavorite('ux-design', true);
   assert.deepEqual(await repository.listFavorites(), ['ux-design']);
-  const saved = await repository.createReview(reviewInput);
-  assert.equal(saved.status, 'local');
-  assert.deepEqual(await repository.listMyReviews(), [saved]);
+  assert.equal(await repository.createReview(reviewInput), 'local');
+  assert.equal(data.get('otz-catalog-demo-reviews'), 'true');
+  await assert.rejects(
+    makeDemoRepository(storage).createReview({ ...reviewInput, disciplineId: '77' }),
+    { status: 409 },
+  );
   assert.ok([...data.keys()].every((key) => key.includes('-demo-')));
   const blocked = makeDemoRepository({
     getItem: () => null,
@@ -448,4 +395,15 @@ test('demo and API share the repository interface; demo writes stay in its own s
     },
   });
   await assert.rejects(blocked.setFavorite('law', true), apiErrors.CatalogStorageError);
+});
+
+test('existing demo reviews are reduced to a submission marker without resetting the limit', async () => {
+  const key = 'otz-catalog-demo-reviews';
+  const data = new Map([[key, JSON.stringify([{ ...reviewInput, id: 'old', status: 'local' }])]]);
+  const repository = makeDemoRepository({
+    getItem: (name) => data.get(name) ?? null,
+    setItem: (name, value) => data.set(name, value),
+  });
+  assert.equal(data.get(key), 'true');
+  await assert.rejects(repository.createReview(reviewInput), { status: 409 });
 });

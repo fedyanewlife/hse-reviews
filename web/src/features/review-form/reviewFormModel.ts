@@ -3,7 +3,6 @@ import {
   type Discipline,
   type ReviewCriterion,
   type ReviewInput,
-  type UserReview,
 } from '../catalog/catalogTypes';
 
 export const reviewFormHref = (minorId?: string) =>
@@ -51,22 +50,6 @@ export function emptyDraft(): ReviewDraft {
   };
 }
 
-export function reviewDraft(review: UserReview): ReviewDraft {
-  return {
-    disciplineId: review.disciplineId,
-    completion:
-      review.completionStatus === 'completed' && review.completionYear
-        ? `year:${review.completionYear}`
-        : review.completionStatus === 'earlier' || review.completionStatus === 'studying'
-          ? review.completionStatus
-          : '',
-    ratings: { ...review.ratings },
-    experience: review.experience,
-    advice: review.advice,
-    consent: false,
-  };
-}
-
 /** Browser drafts contain form fields only; account status and consent cannot be restored. */
 export function restoreDraft(raw: string | null): ReviewDraft | null {
   try {
@@ -95,20 +78,17 @@ export function restoreDraft(raw: string | null): ReviewDraft | null {
 export function initialDraft(
   items: readonly Discipline[],
   requested: string | null,
-  previous: UserReview | null,
   stored: ReviewDraft | null,
 ): ReviewDraft {
   const known = (id: string | null) => items.some((item) => item.id === id);
   const target =
-    previous?.disciplineId ??
-    (known(requested)
+    requested && known(requested)
       ? requested
-      : known(stored?.disciplineId ?? null)
-        ? stored!.disciplineId
-        : '');
+      : stored && known(stored.disciplineId)
+        ? stored.disciplineId
+        : '';
   if (stored?.disciplineId === target) return { ...stored, consent: false };
-  if (previous) return reviewDraft(previous);
-  return { ...emptyDraft(), disciplineId: target ?? '' };
+  return { ...emptyDraft(), disciplineId: target };
 }
 
 export function validateReviewDraft(

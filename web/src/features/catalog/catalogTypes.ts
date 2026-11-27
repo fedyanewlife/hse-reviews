@@ -19,13 +19,11 @@ export const CATALOG_DIRECTIONS = (Object.keys(DIRECTIONS) as CatalogDirection[]
   label: DIRECTIONS[id].label,
 }));
 
-export type CatalogView = 'disciplines' | 'favorites' | 'reviews';
+export type CatalogView = 'disciplines' | 'favorites';
 export type CatalogSort = 'reviews' | 'rating' | 'title';
 export type CatalogFilters = {
   query: string;
   direction: CatalogDirection | 'all';
-  faculties: string[];
-  minimumRating: number;
   sort: CatalogSort;
 };
 
@@ -48,12 +46,4 @@ export type ReviewInput = {
 };
 
 export type ReviewStatus = 'local' | 'pending' | 'published' | 'rejected';
-export type UserReview = ReviewInput & {
-  id: string;
-  status: ReviewStatus;
-  createdAt?: string | null;
-  publishedAt?: string | null;
-  helpfulCount?: number | null;
-  moderationNote?: string | null;
-};
 export type ReviewExcerpt = Discipline['reviews'][number];

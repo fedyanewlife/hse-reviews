@@ -51,7 +51,6 @@ export function CatalogHeader({
           [
             { id: 'disciplines', label: 'Дисциплины' },
             { id: 'favorites', label: 'Избранное' },
-            { id: 'reviews', label: 'Мои отзывы' },
           ] as const
         ).map((tab) =>
           onViewChange ? (
@@ -94,7 +93,7 @@ export function CatalogHeader({
           </summary>
           <div className={styles.profileMenu}>
             <strong>{isDemoCatalog ? 'Демо-профиль' : 'Профиль'}</strong>
-            {isDemoCatalog && <p>Избранное и ваши отзывы хранятся в этом браузере.</p>}
+            {isDemoCatalog && <p>Избранное хранится в этом браузере.</p>}
             <a href="/">Страница авторизации</a>
             {!isDemoCatalog && (
               <Button variant="ghost" disabled={loggingOut} onClick={() => void logout()}>

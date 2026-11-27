@@ -4,7 +4,7 @@ import {
   type Discipline,
   type ReviewExcerpt,
   type ReviewInput,
-  type UserReview,
+  type ReviewStatus,
 } from './catalogTypes';
 import type { CatalogRepository } from './catalogRepository';
 import type { PublishedReview, CompletionStatus } from '../discipline/disciplineTypes';
@@ -65,7 +65,7 @@ export function decodeDiscipline(value: unknown): Discipline {
   };
 }
 
-function reviewStatus(value: unknown): UserReview['status'] {
+function reviewStatus(value: unknown): ReviewStatus {
   if (value === 'pending' || value === 'published' || value === 'rejected') return value;
   throw new ApiContractError('Unknown review status');
 }
@@ -81,44 +81,6 @@ function reviewRatings(item: JsonRecord) {
     throw new ApiContractError('Review ratings must be integers');
   return ratings;
 }
-function decodeMyReview(value: unknown): UserReview {
-  const item = record(value);
-  const ratings = reviewRatings(item);
-  const dates: Pick<UserReview, 'createdAt' | 'publishedAt'> = {};
-  for (const [field, key] of [
-    ['created_at', 'createdAt'],
-    ['published_at', 'publishedAt'],
-  ] as const) {
-    if (!(field in item)) continue;
-    const date = item[field] === null ? null : text(item[field], field);
-    if (date !== null && !Number.isFinite(Date.parse(date)))
-      throw new ApiContractError(`Invalid ${field}`);
-    dates[key] = date;
-  }
-  const metadata: Pick<UserReview, 'helpfulCount' | 'moderationNote'> = {};
-  if ('helpful_count' in item) {
-    const count =
-      item.helpful_count === null ? null : number(item.helpful_count, 'helpful_count', 0);
-    if (count !== null && !Number.isInteger(count))
-      throw new ApiContractError('Invalid helpful count');
-    metadata.helpfulCount = count;
-  }
-  if ('moderation_note' in item)
-    metadata.moderationNote =
-      item.moderation_note === null ? null : text(item.moderation_note, 'moderation_note');
-  return {
-    id: id(item.id),
-    disciplineId: id(item.minor_id),
-    ratings,
-    experience: item.experience_text == null ? '' : text(item.experience_text, 'experience_text'),
-    advice: item.selection_advice == null ? '' : text(item.selection_advice, 'selection_advice'),
-    status: reviewStatus(item.status),
-    ...dates,
-    ...metadata,
-    ...('completion_year' in item || 'completion_status' in item ? reviewCompletion(item) : {}),
-  };
-}
-
 function reviewCompletion(item: JsonRecord) {
   const year =
     item.completion_year == null
@@ -198,13 +160,11 @@ export function createApiCatalogRepository(options: ApiOptions = {}): CatalogRep
     setFavorite: async (minorId, selected) => {
       await request(`/me/favorites/${serverId(minorId)}`, { method: selected ? 'PUT' : 'DELETE' });
     },
-    listMyReviews: async (signal) =>
-      list(await request('/me/reviews', { signal })).map(decodeMyReview),
     createReview: async (input) => {
       const result = record(
         await request('/reviews', { method: 'POST', body: JSON.stringify(reviewPayload(input)) }),
       );
-      return { ...input, id: id(result.id), status: reviewStatus(result.status) };
+      return reviewStatus(result.status);
     },
     logout: async () => {
       await request('/auth/logout', { method: 'POST' });

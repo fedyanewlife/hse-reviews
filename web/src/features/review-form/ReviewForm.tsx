@@ -2,9 +2,9 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
-import { errorMessage, isUnauthorized, ApiError } from '../../shared/api/client';
+import { errorMessage, isUnauthorized } from '../../shared/api/client';
 import { METRIC_CRITERIA } from '../discipline/disciplineTypes';
-import type { Discipline, ReviewInput, UserReview } from '../catalog/catalogTypes';
+import type { Discipline, ReviewInput } from '../catalog/catalogTypes';
 import { MinorPicker } from './MinorPicker';
 import { RatingInput } from './RatingInput';
 import { ReviewPreview } from './ReviewPreview';
@@ -39,20 +39,16 @@ function readDraft(key: string) {
 export function ReviewForm({
   items,
   selectedId,
-  previous,
   demo,
   onSave,
 }: {
   items: readonly Discipline[];
   selectedId: string | null;
-  previous: UserReview | null;
   demo: boolean;
   onSave: (input: ReviewInput) => Promise<void>;
 }) {
   const draftKey = reviewDraftStorageKey(demo);
-  const [draft, setDraft] = useState(() =>
-    initialDraft(items, selectedId, previous, readDraft(draftKey)),
-  );
+  const [draft, setDraft] = useState(() => initialDraft(items, selectedId, readDraft(draftKey)));
   const [tried, setTried] = useState(false);
   const [pending, setPending] = useState(false);
   const [failure, setFailure] = useState<unknown>(null);
@@ -119,28 +115,17 @@ export function ReviewForm({
       <div className={styles.formLayout}>
         <fieldset className={styles.formFields} disabled={pending}>
           <legend className={styles.srOnly}>Новый отзыв о майноре</legend>
-          {previous && (
-            <p className={styles.resubmission}>
-              Можно исправить и повторно отправить отзыв об этом майноре. Предыдущая версия
-              останется в истории.
-            </p>
-          )}
           <section
             className={styles.section}
             aria-labelledby="minor-heading"
             data-field="disciplineId"
           >
             <h2 id="minor-heading">Майнор</h2>
-            <p>
-              {previous
-                ? 'Отзыв можно оставить только об одном майноре.'
-                : 'Выбери майнор, который проходишь или уже закончил.'}
-            </p>
+            <p>Выбери майнор, который проходишь или уже закончил.</p>
             <MinorPicker
               items={items}
               value={draft.disciplineId}
               onChange={(disciplineId) => update({ disciplineId })}
-              locked={!!previous}
               error={tried ? errors.disciplineId : undefined}
             />
           </section>
@@ -304,8 +289,8 @@ export function ReviewForm({
             <Icon icon={ShieldCheck} size={21} />
             <span>
               {demo
-                ? 'В демо отзыв сохранится в этом браузере. На сервер он не отправится.'
-                : 'Имя и почта не показываются. Отзыв появится на странице майнора после проверки.'}
+                ? 'В демо браузер запомнит только факт отправки.'
+                : 'После проверки отзыв появится на странице майнора без имени и почты. Аккаунт нужен для проверки лимита отправок.'}
             </span>
           </p>
         </aside>
@@ -324,10 +309,6 @@ export function ReviewForm({
             <Button href="/" variant="secondary">
               Войти
             </Button>
-          ) : failure instanceof ApiError && failure.status === 409 ? (
-            <Button href="/catalog?view=reviews" variant="secondary">
-              Мои отзывы
-            </Button>
           ) : null}
         </div>
       )}
@@ -340,7 +321,7 @@ export function ReviewForm({
               : `Осталось заполнить: ${REQUIRED_ANSWERS - answered}`}
         </p>
         <Button type="submit" size="l" disabled={pending}>
-          {pending ? 'Сохраняем…' : demo ? 'Сохранить отзыв' : 'Отправить отзыв'}
+          {pending ? 'Сохраняем…' : 'Отправить отзыв'}
         </Button>
       </div>
     </form>

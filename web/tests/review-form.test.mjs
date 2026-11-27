@@ -4,7 +4,7 @@ import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-let server, model, api, makeDemo, Form;
+let server, model, api, Form;
 const items = [
   {
     id: '42',
@@ -32,9 +32,6 @@ before(async () => {
   });
   model = await server.ssrLoadModule('/src/features/review-form/reviewFormModel.ts');
   api = await server.ssrLoadModule('/src/features/catalog/catalogApi.ts');
-  ({ createDemoCatalogRepository: makeDemo } = await server.ssrLoadModule(
-    '/src/features/catalog/catalogDemoRepository.ts',
-  ));
   ({ ReviewForm: Form } = await server.ssrLoadModule('/src/features/review-form/ReviewForm.tsx'));
 });
 after(async () => {
@@ -120,34 +117,14 @@ test('draft restoration ignores account metadata and consent, validates ratings 
   assert.notEqual(model.reviewDraftStorageKey(true), model.reviewDraftStorageKey(false));
 });
 
-test('a requested new minor does not receive another minor’s draft; rejected reviews remain locked to their original minor', () => {
+test('a requested new minor does not receive another minor’s draft', () => {
   const stored = { ...validDraft(), experience: 'Черновик про первый майнор' };
-  const restored = model.initialDraft(items, null, null, stored);
+  const restored = model.initialDraft(items, null, stored);
   assert.equal(restored.experience, stored.experience);
   assert.equal(restored.consent, false);
-  const changed = model.initialDraft(items, '77', null, stored);
+  const changed = model.initialDraft(items, '77', stored);
   assert.equal(changed.disciplineId, '77');
   assert.equal(changed.experience, '');
-  const previous = { ...model.reviewInput(stored), id: 'old', status: 'rejected' };
-  const resubmission = model.initialDraft(items, '77', previous, null);
-  assert.equal(resubmission.disciplineId, '42');
-  assert.equal(resubmission.experience, previous.experience);
-  assert.equal(resubmission.completion, 'year:2026');
-  assert.equal(resubmission.consent, false);
-});
-
-test('demo submission round-trips completion metadata and remains local', async () => {
-  for (const completion of ['year:2026', 'earlier', 'studying']) {
-    const data = new Map();
-    const repository = makeDemo({
-      getItem: (key) => data.get(key) ?? null,
-      setItem: (key, value) => data.set(key, value),
-    });
-    const input = model.reviewInput({ ...validDraft(), completion });
-    const saved = await repository.createReview(input);
-    assert.equal(saved.status, 'local');
-    assert.deepEqual(await repository.listMyReviews(), [saved]);
-  }
 });
 
 test('API submission sends the documented completion extension with the existing five ratings', async () => {
@@ -168,9 +145,7 @@ test('API submission sends the documented completion extension with the existing
         return json({ id: 99, status: 'pending' }, 201);
       },
     });
-    const result = await repository.createReview(input);
-    assert.equal(result.status, 'pending');
-    assert.equal(result.completionStatus, input.completionStatus);
+    assert.equal(await repository.createReview(input), 'pending');
   }
 });
 
@@ -179,7 +154,6 @@ test('form uses native keyboard radios, labelled optional text fields and an exp
     createElement(Form, {
       items,
       selectedId: '42',
-      previous: null,
       demo: true,
       onSave: async () => {},
     }),
@@ -190,7 +164,7 @@ test('form uses native keyboard radios, labelled optional text fields and an exp
   assert.match(checkbox, /type="checkbox"/);
   assert.doesNotMatch(checkbox, /checked/);
   assert.match(html, /Предпросмотр отзыва/);
-  assert.match(html, /Сохранить отзыв/);
+  assert.match(html, /Отправить отзыв/);
   assert.match(html, /name="experience"/);
   assert.match(html, /name="advice"/);
   assert.doesNotMatch(html, /На проверке|Опубликован|проверка занимает до суток/);

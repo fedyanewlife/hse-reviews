@@ -12,13 +12,11 @@ export function MinorPicker({
   items,
   value,
   onChange,
-  locked,
   error,
 }: {
   items: readonly Discipline[];
   value: string;
   onChange: (value: string) => void;
-  locked: boolean;
   error?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -38,8 +36,6 @@ export function MinorPicker({
   const filtered = selectDisciplines(items, {
     query,
     direction: 'all',
-    faculties: [],
-    minimumRating: 0,
     sort: 'title',
   });
   return (
@@ -52,7 +48,6 @@ export function MinorPicker({
           setQuery('');
           setOpen(true);
         }}
-        disabled={locked}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-invalid={!!error}
@@ -67,7 +62,7 @@ export function MinorPicker({
         ) : (
           <span>Выбрать майнор</span>
         )}
-        {!locked && <Icon icon={ChevronDown} size={20} />}
+        <Icon icon={ChevronDown} size={20} />
       </button>
       {error && (
         <p id="minor-error" className={styles.fieldError}>

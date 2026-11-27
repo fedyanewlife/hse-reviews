@@ -10,7 +10,8 @@
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
-  min-height: 46px;
+  width: 100%;
+  min-height: var(--select-height, 46px);
   padding-inline: var(--space-4);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
@@ -37,6 +38,7 @@
 }
 .sortChevron {
   flex: none;
+  margin-inline-start: auto;
   color: var(--text-2);
 }
 .sortTrigger[aria-expanded='true'] .sortChevron {
@@ -78,6 +80,11 @@
 .sortOption[aria-selected='true'] {
   background: var(--surface-subtle);
   font-weight: var(--weight-semibold);
+}
+.sortOptionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 .sortOption:hover {
   background: var(--surface-muted);

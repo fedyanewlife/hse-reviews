@@ -1,17 +1,15 @@
-import { CatalogStorageError } from '../../shared/api/client';
+import { ApiError, CatalogStorageError } from '../../shared/api/client';
 import { DEMO_DISCIPLINES } from './catalogDemo';
-import { FAVORITES_KEY, parseFavorites, parseReviews, REVIEWS_KEY } from './catalogModel';
+import { FAVORITES_KEY, parseFavorites } from './catalogModel';
 import type { CatalogRepository } from './catalogRepository';
 import { demoPublishedReviews } from '../discipline/disciplineDemo';
 import { reviewSummary } from '../discipline/disciplineModel';
-import { assertCanSubmitReview } from '../my-reviews/myReviewModel';
+
+const REVIEW_MARKER_KEY = 'otz-catalog-demo-reviews';
 
 type DemoStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
-export function createDemoCatalogRepository(
-  storage: DemoStorage,
-  makeId = () => crypto.randomUUID(),
-): CatalogRepository {
+export function createDemoCatalogRepository(storage: DemoStorage): CatalogRepository {
   function read(key: string) {
     try {
       return storage.getItem(key);
@@ -26,6 +24,26 @@ export function createDemoCatalogRepository(
       throw new CatalogStorageError();
     }
   }
+  function hasSubmittedReview() {
+    const stored = read(REVIEW_MARKER_KEY);
+    if (stored === 'true') return true;
+    let legacy: unknown;
+    try {
+      legacy = JSON.parse(stored ?? 'null');
+    } catch {
+      return false;
+    }
+    if (!Array.isArray(legacy) || !legacy.length) return false;
+
+    // Keep the limit for existing demo submissions without retaining their contents.
+    try {
+      write(REVIEW_MARKER_KEY, true);
+    } catch {
+      // The old entry still counts even if the browser refuses to rewrite it.
+    }
+    return true;
+  }
+  hasSubmittedReview();
   return {
     listDisciplines: async () =>
       DEMO_DISCIPLINES.map((item) => {
@@ -52,18 +70,10 @@ export function createDemoCatalogRepository(
         selected ? [...new Set([...ids, id])] : ids.filter((value) => value !== id),
       );
     },
-    listMyReviews: async () => parseReviews(read(REVIEWS_KEY)),
-    createReview: async (input) => {
-      const existing = parseReviews(read(REVIEWS_KEY));
-      assertCanSubmitReview(existing, input.disciplineId);
-      const review = {
-        ...input,
-        id: makeId(),
-        status: 'local' as const,
-        createdAt: new Date().toISOString(),
-      };
-      write(REVIEWS_KEY, [review, ...existing]);
-      return review;
+    createReview: async () => {
+      if (hasSubmittedReview()) throw new ApiError(409, 'В этом браузере отзыв уже отправлен.');
+      write(REVIEW_MARKER_KEY, true);
+      return 'local';
     },
     logout: async () => {},
   };

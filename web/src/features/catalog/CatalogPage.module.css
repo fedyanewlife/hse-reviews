@@ -42,7 +42,7 @@
 }
 .nav {
   display: grid;
-  grid-template-columns: repeat(3, minmax(128px, 1fr));
+  grid-template-columns: repeat(2, minmax(128px, 1fr));
   align-self: stretch;
   gap: 8px;
 }
@@ -137,6 +137,10 @@
 .heroCopy {
   min-width: 0;
 }
+.hero.heroCatalog {
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+  min-height: 244px;
+}
 .hero.heroFavorites {
   --hero-start: #ffebef;
   --hero-end: #f5e3f6;
@@ -167,6 +171,16 @@
   font: 700 clamp(28px, 3.05vw, 44px)/1.15 var(--font-display);
   letter-spacing: var(--tracking-display);
 }
+.heroCatalog h1 {
+  font-size: clamp(26px, 3vw, 40px);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.hero .heroReviewButton {
+  margin-top: var(--space-5);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-float);
+}
 .heroReviewLink {
   display: inline-flex;
   align-items: center;
@@ -192,20 +206,19 @@
   transform: translateY(1px);
 }
 .heroIllustration {
-  position: relative;
-  min-height: 144px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-self: start;
+  align-items: start;
+  gap: var(--space-6);
+  padding-block: var(--space-2) var(--space-3);
 }
 .heroQuotePosition {
-  position: absolute;
-  top: -6px;
-  left: 12px;
-  width: min(260px, 46%);
+  min-width: 0;
   transform: rotate(-3deg);
 }
 .heroQuotePosition + .heroQuotePosition {
-  top: 20px;
-  right: 0;
-  left: auto;
+  margin-top: var(--space-6);
   transform: rotate(3deg);
 }
 .heroQuote {
@@ -307,7 +320,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-@media (max-width: 768px), (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
   .heroQuote[data-phase] {
     animation: none;
     opacity: 1;
@@ -336,55 +349,30 @@
   font-size: 14px;
 }
 
-.searchRow {
-  position: relative;
-  margin-top: 24px;
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-10) 0 var(--space-4);
 }
-.searchRow .search {
-  --h: 64px;
-  --fs: 16px;
+.filterRow .search {
+  --h: var(--control-h-l);
+  --fs: var(--type-body);
+
+  flex: 1;
+  min-width: 0;
 }
-.searchRow .search input {
-  padding-right: 42px;
+.filterRow .search input {
   border-color: var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-full);
 }
-.searchRow .search input:focus {
+.filterRow .search input:focus {
   border-color: var(--border-focus);
 }
-.directions {
-  display: flex;
-  gap: 8px;
-  margin: 16px 0 24px;
-  padding: 2px;
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
-.directionButton {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  padding: 8px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  background: var(--surface);
-  color: var(--text);
-  font: 600 14px/1.4 var(--font-body);
-  cursor: pointer;
-}
-.directionButton:hover {
-  background: var(--surface-muted);
-}
-.directionActive,
-.directionActive:hover {
-  border-color: var(--action-bg);
-  background: var(--action-bg);
-  color: var(--action-fg);
-}
-.directionActive > span {
-  color: inherit;
+.resultCount {
+  margin: 0 0 var(--space-4);
+  color: var(--text-2);
+  font-size: var(--type-xs);
 }
 .results {
   min-width: 0;
@@ -676,22 +664,6 @@
 .reviewList p {
   margin: 12px 0 0;
 }
-@media (max-width: 1199px) {
-  .hero {
-    grid-template-columns: minmax(0, 1fr) 280px;
-  }
-  .heroIllustration {
-    min-height: 272px;
-  }
-  .heroQuotePosition {
-    top: 0;
-    left: 0;
-    width: 260px;
-  }
-  .heroQuotePosition + .heroQuotePosition {
-    top: 140px;
-  }
-}
 
 @media (max-width: 1099px) {
   .hero.heroFavorites {
@@ -704,6 +676,16 @@
 }
 
 @media (max-width: 899px) {
+  .hero.heroCatalog {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .filterRow {
+    flex-wrap: wrap;
+    margin-top: var(--space-6);
+  }
+  .filterRow .search {
+    flex: 0 0 100%;
+  }
   .header {
     flex-wrap: wrap;
     gap: 0 24px;
@@ -735,7 +717,7 @@
   }
   .nav {
     height: 48px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 4px;
   }
   .navItem {
@@ -756,30 +738,14 @@
     max-width: 300px;
     font-size: 28px;
   }
+  .heroCatalog h1 {
+    max-width: none;
+    font-size: clamp(23px, 6.2vw, 28px);
+  }
   .eyebrow {
     margin-bottom: 12px;
     font-size: 11px;
     letter-spacing: 0.04em;
-  }
-  .searchRow {
-    margin-top: 16px;
-  }
-  .searchRow .search {
-    --h: 52px;
-    --fs: 14px;
-  }
-  .searchRow .search input {
-    padding-right: 42px;
-  }
-  .directions {
-    margin-block: 14px 16px;
-    margin-right: -20px;
-    padding-right: 20px;
-  }
-  .directionButton {
-    min-height: 44px;
-    padding-inline: 14px;
-    font-size: 13px;
   }
   .grid {
     grid-template-columns: minmax(0, 1fr);
@@ -826,16 +792,11 @@
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-6);
   }
-  .heroIllustration {
-    display: grid;
-    gap: var(--space-4);
+  .hero.heroCatalog {
     min-height: 0;
   }
-  .heroQuotePosition,
-  .heroQuotePosition + .heroQuotePosition {
-    position: static;
-    width: 100%;
-    transform: none;
+  .heroIllustration {
+    display: none;
   }
 }
 
@@ -856,9 +817,5 @@
   }
   .hero h1 {
     font-size: 25px;
-  }
-  .directions {
-    margin-right: -16px;
-    padding-right: 16px;
   }
 }

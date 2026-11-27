@@ -1,4 +1,4 @@
-import type { Discipline, ReviewExcerpt, ReviewInput, UserReview } from './catalogTypes';
+import type { Discipline, ReviewExcerpt, ReviewInput, ReviewStatus } from './catalogTypes';
 import { createApiCatalogRepository } from './catalogApi';
 import type { PublishedReview } from '../discipline/disciplineTypes';
 
@@ -9,8 +9,7 @@ export interface CatalogRepository {
   listPublishedReviews(id: string, signal?: AbortSignal): Promise<readonly PublishedReview[]>;
   listFavorites(signal?: AbortSignal): Promise<string[]>;
   setFavorite(id: string, selected: boolean): Promise<void>;
-  listMyReviews(signal?: AbortSignal): Promise<UserReview[]>;
-  createReview(input: ReviewInput): Promise<UserReview>;
+  createReview(input: ReviewInput): Promise<ReviewStatus>;
   logout(): Promise<void>;
 }
 
@@ -38,7 +37,6 @@ export const catalogRepository: CatalogRepository = isDemoCatalog
       listPublishedReviews: async (id, signal) => (await demo()).listPublishedReviews(id, signal),
       listFavorites: async (signal) => (await demo()).listFavorites(signal),
       setFavorite: async (id, selected) => (await demo()).setFavorite(id, selected),
-      listMyReviews: async (signal) => (await demo()).listMyReviews(signal),
       createReview: async (input) => (await demo()).createReview(input),
       logout: async () => (await demo()).logout(),
     }
