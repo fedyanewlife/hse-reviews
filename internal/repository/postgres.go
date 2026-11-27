@@ -43,6 +43,10 @@ func (p *Postgres) Close() {
 	p.pool.Close()
 }
 
+func (p *Postgres) Pool() *pgxpool.Pool {
+	return p.pool
+}
+
 func (p *Postgres) UpsertUser(ctx context.Context, issuer, subject string) (int32, error) {
 	const query = `
 		INSERT INTO users (issuer, subject)
