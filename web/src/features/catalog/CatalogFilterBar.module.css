@@ -20,32 +20,157 @@
 .bar .control > button > svg {
   margin-inline-start: 0;
 }
+.bar .control > [role='listbox'] {
+  width: 100%;
+  max-width: none;
+}
+.directionFilter {
+  --direction-inset: var(--space-3);
+  --direction-list-inset: var(--space-2);
+  --direction-label-gap: var(--space-2);
+  --direction-marker-width: 28px;
+  --direction-indicator-width: 16px;
+  --direction-dot-size: 11px;
+
+  min-width: 0;
+}
+.bar .directionControl {
+  isolation: isolate;
+  z-index: 10;
+}
+.directionControl::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 auto;
+  height: 100%;
+  border: 1px solid color-mix(in srgb, var(--direction-color, var(--border)) 18%, var(--border));
+  border-radius: calc(var(--select-height) / 2);
+  background: color-mix(in srgb, var(--direction-tint, var(--surface)) 72%, var(--surface));
+  pointer-events: none;
+  content: '';
+}
+.directionControl:has(> button[aria-expanded='true'])::before {
+  height: calc(100% + var(--direction-menu-height, 0px));
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-float);
+}
+.bar .control.directionControl > button {
+  justify-content: flex-start;
+  gap: var(--direction-label-gap);
+  padding-inline: calc(var(--direction-inset) - 1px);
+  border-color: transparent;
+  background: transparent;
+}
+.bar .directionControl > button > svg {
+  margin-inline-start: auto;
+}
 .bar .directionControl > [role='listbox'] {
-  right: auto;
-  left: 0;
+  inset: var(--select-height) 0 auto;
+  padding: var(--space-1) var(--direction-list-inset) var(--space-2);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  clip-path: inset(0);
+}
+.bar .directionControl > [role='listbox'][aria-hidden='true'] {
+  clip-path: inset(0 0 100%);
+}
+.directionControl [role='option'] {
+  gap: var(--direction-label-gap);
+  padding-inline: calc(var(--direction-inset) - var(--direction-list-inset));
+}
+.directionControl [role='option'] > span {
+  gap: var(--direction-label-gap);
+  min-width: 0;
+}
+.directionControl > button > svg,
+.directionControl [role='option'] > svg {
+  width: var(--direction-indicator-width);
 }
 .directionDots {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: 2px;
+  justify-content: space-between;
+  width: var(--direction-marker-width);
 }
 .directionDots > span {
-  width: 4px;
-  height: 4px;
+  --dot-size: 4px;
+
+  position: relative;
+  width: var(--dot-size);
+  height: var(--dot-size);
+}
+.directionDots > span::after {
+  position: absolute;
+  z-index: 11;
+  inset: 0;
   border-radius: var(--radius-full);
+  background: var(--dot-color);
+  pointer-events: none;
+  content: '';
 }
-.directionDots > span:only-child {
-  width: 8px;
-  height: 8px;
+.directionDots[data-single] > span:not([data-selected])::after {
+  opacity: 0;
+  transform: var(--dot-travel, none);
 }
-.bar .selectedDirection > button {
-  border-color: var(--action-bg);
-  background: var(--action-bg);
-  color: var(--action-fg);
+.directionDots > span[data-selected]::after {
+  transform: var(--dot-home, scale(2));
 }
-.bar .selectedDirection > button > svg {
-  color: inherit;
+.directionOptionDot {
+  --dot-offset: calc(
+    (
+        var(--direction-marker-width) + var(--direction-label-gap) - var(--direction-inset) -
+          var(--direction-dot-size)
+      ) /
+      2
+  );
+
+  flex: none;
+  width: var(--direction-dot-size);
+  height: var(--direction-dot-size);
+  margin-inline: var(--dot-offset)
+    calc(var(--direction-marker-width) - var(--direction-dot-size) - var(--dot-offset));
+  border-radius: var(--radius-full);
+  background: var(--dot-color, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .directionFilter[data-dots-ready]:not(:has(.directionDots[data-single])) .directionOptionDot,
+  .directionFilter[data-dots-ready] [aria-selected='true'] .directionOptionDot {
+    background: transparent;
+  }
+  .directionFilter[data-dots-ready] .directionDots > span::after {
+    transition: transform 320ms var(--ease);
+  }
+  .directionFilter[data-dots-ready]
+    button[aria-expanded='true']
+    .directionDots:not([data-single])
+    > span::after,
+  .directionFilter[data-dots-ready]
+    button[aria-expanded='true']
+    .directionDots
+    > [data-selected]::after {
+    transform: var(--dot-travel);
+    transition-delay: var(--dot-delay);
+  }
+  .directionControl::before {
+    transition:
+      height 320ms var(--ease),
+      border-radius 320ms var(--ease),
+      background-color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+  .bar .directionControl > [role='listbox'] {
+    transition:
+      clip-path 320ms var(--ease),
+      visibility 320ms;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .directionControl > button[aria-expanded='true'] .directionDots {
+    visibility: hidden;
+  }
 }
 @media (max-width: 768px) {
   .bar {
@@ -59,7 +184,32 @@
     padding-inline: var(--space-2);
     font-size: var(--type-sm);
   }
-  .bar .directionControl > button > .directionDots {
-    display: none;
+  .directionFilter {
+    --direction-inset: var(--space-2);
+    --direction-list-inset: var(--space-1);
+    --direction-label-gap: var(--space-1);
+    --direction-marker-width: 19px;
+    --direction-indicator-width: 14px;
+  }
+  .directionDots > span {
+    --dot-size: 3px;
+  }
+  .control [role='option'] {
+    font-size: var(--type-xs);
+  }
+  .control:not(.directionControl) [role='option'] {
+    gap: var(--space-1);
+    padding-inline: var(--space-1);
+  }
+  .control:not(.directionControl) [role='option'] > svg {
+    width: 12px;
+  }
+}
+@media (max-width: 359px) {
+  .directionFilter {
+    --direction-inset: calc(var(--space-1) + 1px);
+  }
+  .bar .control.directionControl > button {
+    font-size: var(--type-xs);
   }
 }

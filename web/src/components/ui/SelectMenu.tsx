@@ -18,6 +18,8 @@ export function SelectMenu<T extends string>({
   label = 'Сортировка',
   caption = 'Сначала:',
   className,
+  triggerIcon,
+  keepMounted = false,
 }: {
   value: T;
   onChange: (value: T) => void;
@@ -25,6 +27,8 @@ export function SelectMenu<T extends string>({
   label?: string;
   caption?: string;
   className?: string;
+  triggerIcon?: ReactNode;
+  keepMounted?: boolean;
 }) {
   const selectedOption = options.find((option) => option.value === value) ?? options[0];
   const selectedIndex = options.findIndex((option) => option.value === selectedOption?.value);
@@ -90,14 +94,21 @@ export function SelectMenu<T extends string>({
         }}
       >
         {caption && <span className={styles.sortCaption}>{caption}</span>}
-        {selectedOption.icon}
+        {triggerIcon ?? selectedOption.icon}
         <span className={styles.sortValue}>
           {selectedOption.triggerLabel ?? selectedOption.label}
         </span>
         <Icon icon={ChevronDown} size={16} className={styles.sortChevron} />
       </button>
-      {open && (
-        <div className={styles.sortPopup} role="listbox" aria-label={label} id={popupId}>
+      {(open || keepMounted) && (
+        <div
+          className={styles.sortPopup}
+          role="listbox"
+          aria-label={label}
+          aria-hidden={open ? undefined : true}
+          inert={!open}
+          id={popupId}
+        >
           {options.map((option, index) => (
             <button
               key={option.value}
