@@ -103,7 +103,7 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
       <CatalogHeader onError={setNotice} />
       <main className={styles.main} id="main-content">
         <nav className={styles.breadcrumb} aria-label="Хлебные крошки">
-          <a href="/catalog">Дисциплины</a>
+          <a href="/catalog">Майноры</a>
           <span aria-hidden="true">/</span>
           <span>{item ? DIRECTIONS[item.direction].label : 'Майнор'}</span>
           {isDemoCatalog && <span className={styles.demo}>Демо</span>}
@@ -129,7 +129,7 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
         ) : !item ? (
           <section className={styles.state}>
             <h1>Такого майнора не нашлось</h1>
-            <p>Возможно, ссылка устарела. Найдите нужную дисциплину в каталоге.</p>
+            <p>Возможно, ссылка устарела. Найдите нужный майнор в каталоге.</p>
             <Button href="/catalog">Перейти в каталог</Button>
           </section>
         ) : (

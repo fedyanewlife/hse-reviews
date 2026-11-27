@@ -65,7 +65,7 @@ export function HeroReviews({
 
   const visible = staticReviews ? initialHeroReviewCycle(reviews.length).slots : slots;
   return (
-    <div className={styles.heroIllustration} aria-label="Отзывы о дисциплинах">
+    <div className={styles.heroIllustration} aria-label="Отзывы о майнорах">
       {visible.map((slot, index) => {
         const review = reviews[slot.index];
         if (!review) return null;

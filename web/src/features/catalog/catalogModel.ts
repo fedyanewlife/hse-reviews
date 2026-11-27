@@ -47,18 +47,6 @@ export function parseFavorites(raw: string | null): string[] {
   }
 }
 
-export function disciplineCount(count: number) {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-  const noun =
-    mod10 === 1 && mod100 !== 11
-      ? 'дисциплина'
-      : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)
-        ? 'дисциплины'
-        : 'дисциплин';
-  return `${count} ${noun}`;
-}
-
 export function minorCount(count: number) {
   const forms = { one: 'майнор', few: 'майнора', other: 'майноров' };
   const rule = new Intl.PluralRules('ru').select(count);

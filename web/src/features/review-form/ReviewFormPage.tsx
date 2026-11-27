@@ -33,7 +33,7 @@ export function ReviewFormPage() {
       <main id="main-content" className={`${shell.main} ${styles.main}`}>
         <a className={styles.back} href={backItem ? disciplineHref(backItem.id) : '/catalog'}>
           <Icon icon={ArrowLeft} size={17} />
-          {backItem?.title ?? 'К списку дисциплин'}
+          {backItem?.title ?? 'К списку майноров'}
         </a>
         {notice && (
           <p className={shell.notice} role="status">
@@ -67,7 +67,7 @@ export function ReviewFormPage() {
                   : 'После одобрения отзыв появится на странице майнора без имени и почты.'}
             </p>
             <div className={styles.resultActions}>
-              <Button href="/catalog">К списку дисциплин</Button>
+              <Button href="/catalog">К списку майноров</Button>
             </div>
           </section>
         ) : catalog.status === 'loading' ? (
@@ -94,7 +94,7 @@ export function ReviewFormPage() {
             <h1>Майноров пока нет</h1>
             <p>Оставить отзыв можно будет, когда появится список майноров.</p>
             <Button href="/catalog" variant="secondary">
-              К списку дисциплин
+              К списку майноров
             </Button>
           </div>
         ) : (

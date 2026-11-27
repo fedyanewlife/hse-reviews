@@ -14,7 +14,6 @@ import { HeroReviews } from './HeroReviews';
 import { FavoriteHeroCards } from './FavoriteHeroCards';
 import { reviewFormHref } from '../review-form/reviewFormModel';
 import {
-  disciplineCount,
   minorCount,
   reviewCount,
   PAGE_SIZE,
@@ -41,7 +40,7 @@ export function CatalogPage() {
     return value === 'favorites' ? 'favorites' : 'disciplines';
   });
   useEffect(() => {
-    const title = view === 'favorites' ? 'Избранное' : 'Дисциплины';
+    const title = view === 'favorites' ? 'Избранное' : 'Майноры';
     document.title = `${title} — ОтзоВышка`;
   }, [view]);
   const [filters, setFilters] = useState<CatalogFilters>(() => ({
@@ -234,25 +233,25 @@ export function CatalogPage() {
             size="l"
             value={filters.query}
             onChange={(query) => updateFilters({ query })}
-            placeholder="Найти дисциплину"
+            placeholder="Найти майнор"
           />
           <CatalogFilterBar filters={filters} onChange={updateFilters} />
         </div>
         {!loading && !viewError && (
           <p className={styles.resultCount} role="status">
-            {disciplineCount(filtered.length)}
+            {minorCount(filtered.length)}
           </p>
         )}
         <section
           id="catalog-results"
           className={styles.results}
-          aria-label="Дисциплины"
+          aria-label="Майноры"
           aria-busy={loading}
         >
           {loading ? (
             <>
               <p className={styles.loadingMessage} role="status">
-                Ищем подходящие дисциплины…
+                Ищем подходящие майноры…
               </p>
               <CatalogSkeleton />
             </>
@@ -305,7 +304,7 @@ export function CatalogPage() {
               </h2>
               <p>
                 {view === 'favorites' && !source.length
-                  ? 'Нажмите на сердечко в карточке — дисциплина появится здесь.'
+                  ? 'Нажмите на сердечко в карточке, чтобы добавить сюда майнор.'
                   : 'Попробуйте другое название или уберите часть фильтров. Иногда достаточно одного слова.'}
               </p>
               <Button
@@ -316,7 +315,7 @@ export function CatalogPage() {
                 }}
               >
                 {view === 'favorites' && !source.length
-                  ? 'Посмотреть дисциплины'
+                  ? 'Посмотреть майноры'
                   : 'Сбросить поиск и фильтры'}
               </Button>
             </div>
@@ -332,7 +331,7 @@ export function CatalogPage() {
                   setVisibleCount((value) => value + PAGE_SIZE);
                 }}
               >
-                Показать ещё дисциплины <Icon icon={ArrowDown} size={16} />
+                Показать ещё майноры <Icon icon={ArrowDown} size={16} />
               </Button>
             )}
           </div>

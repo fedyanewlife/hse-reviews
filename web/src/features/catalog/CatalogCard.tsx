@@ -56,7 +56,7 @@ export function CatalogCard({
         <span aria-hidden="true">·</span>
         <span
           className={styles.reviewCount}
-          aria-label={`${reviewCount(item.reviewCount)} о дисциплине «${item.title}»`}
+          aria-label={`${reviewCount(item.reviewCount)} о майноре «${item.title}»`}
         >
           <Icon icon={MessageCircleMore} size={20} />
           {item.reviewCount.toLocaleString('ru-RU')}

@@ -184,14 +184,14 @@ test('bad or unavailable storage is recovered without crashing', () => {
 });
 
 test('Russian result and review counts use the correct forms', () => {
-  assert.deepEqual([0, 1, 2, 5, 11, 21, 22].map(model.disciplineCount), [
-    '0 дисциплин',
-    '1 дисциплина',
-    '2 дисциплины',
-    '5 дисциплин',
-    '11 дисциплин',
-    '21 дисциплина',
-    '22 дисциплины',
+  assert.deepEqual([0, 1, 2, 5, 11, 21, 22].map(model.minorCount), [
+    '0 майноров',
+    '1 майнор',
+    '2 майнора',
+    '5 майноров',
+    '11 майноров',
+    '21 майнор',
+    '22 майнора',
   ]);
   assert.equal(model.reviewCount(84), '84 отзыва');
   assert.equal(model.reviewCount(11), '11 отзывов');
