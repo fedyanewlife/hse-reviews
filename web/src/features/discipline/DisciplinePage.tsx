@@ -1,5 +1,5 @@
-import { useEffect, useState, type CSSProperties } from 'react';
-import { ArrowDown, ArrowRight, Heart, Lightbulb, Pencil, Star } from 'lucide-react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { ArrowDown, Heart, Pencil, Sparkles, Star, X } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { DirectionMark } from '../../components/ui/DirectionMark';
 import { DIRECTIONS } from '../../components/ui/directions';
@@ -14,16 +14,10 @@ import { reviewCount } from '../catalog/catalogModel';
 import { useCatalog } from '../catalog/useCatalog';
 import { useCatalogAccount } from '../catalog/useCatalogAccount';
 import { useDisciplineReviews } from '../catalog/useDisciplineReviews';
-import {
-  adviceReviews,
-  completionLabel,
-  disciplineHref,
-  reviewSummary,
-  selectReviews,
-} from './disciplineModel';
+import { disciplineHref, reviewSummary, sortReviews } from './disciplineModel';
 import { DisciplineRatings } from './DisciplineRatings';
 import { DisciplineReviewCard } from './DisciplineReviewCard';
-import type { ReviewAudience, ReviewSort } from './disciplineTypes';
+import type { ReviewSort } from './disciplineTypes';
 import { useHelpfulVotes } from './useHelpfulVotes';
 import styles from './DisciplinePage.module.css';
 import { reviewFormHref } from '../review-form/reviewFormModel';
@@ -34,18 +28,22 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
   const data = useDisciplineReviews(item?.id ?? null);
   const account = useCatalogAccount();
   const [notice, setNotice] = useState('');
-  const [audience, setAudience] = useState<ReviewAudience>('all');
+  const [themeId, setThemeId] = useState<string | null>(null);
   const [sort, setSort] = useState<ReviewSort>('helpful');
   const [limit, setLimit] = useState(6);
   const [requestedReview, setRequestedReview] = useState<{ id: string } | null>(null);
+  const [heroPassed, setHeroPassed] = useState(false);
+  const heroActions = useRef<HTMLDivElement>(null);
   const voting = useHelpfulVotes(isDemoCatalog, setNotice);
   const summary = reviewSummary(data.items);
   const hasHelpful = data.items.some((review) => review.helpfulCount !== null);
   const effectiveSort = !hasHelpful && sort === 'helpful' ? 'newest' : sort;
-  const sorted = selectReviews(data.items, audience, effectiveSort, voting.votes);
+  const theme = data.themes.find((value) => value.id === themeId);
+  const reviewItems = theme
+    ? data.items.filter((review) => theme.reviewIds.includes(review.id))
+    : data.items;
+  const sorted = sortReviews(reviewItems, effectiveSort, voting.votes);
   const visible = sorted.slice(0, limit);
-  const hints = adviceReviews(data.items);
-  const quotes = data.items.filter((review) => review.experience.trim()).slice(0, 2);
   const related = catalog.items
     .filter((value) => value.id !== item?.id && value.direction === item?.direction)
     .slice(0, 3);
@@ -62,6 +60,15 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
     element?.scrollIntoView({ block: 'start' });
     element?.focus({ preventScroll: true });
   }, [requestedReview]);
+  useEffect(() => {
+    const actions = heroActions.current;
+    if (!actions) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry) setHeroPassed(entry.boundingClientRect.bottom <= 0);
+    });
+    observer.observe(actions);
+    return () => observer.disconnect();
+  }, [item]);
 
   async function toggleFavorite() {
     try {
@@ -70,13 +77,11 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
       setNotice(errorMessage(error));
     }
   }
-  function revealReview(id: string) {
-    setAudience('all');
-    const index = selectReviews(data.items, 'all', effectiveSort, voting.votes).findIndex(
-      (review) => review.id === id,
-    );
-    setLimit(Math.max(6, index + 1));
-    setRequestedReview({ id });
+  function changeTheme(id: string | null) {
+    setThemeId(id === themeId ? null : id);
+    setLimit(6);
+    document.getElementById('reviews')?.scrollIntoView({ block: 'start' });
+    document.getElementById('reviews-title')?.focus({ preventScroll: true });
   }
   const sortOptions: { value: ReviewSort; label: string }[] = [
     ...(hasHelpful ? [{ value: 'helpful' as const, label: 'Полезные' }] : []),
@@ -106,7 +111,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
           <a href="/catalog">Майноры</a>
           <span aria-hidden="true">/</span>
           <span>{item ? DIRECTIONS[item.direction].label : 'Майнор'}</span>
-          {isDemoCatalog && <span className={styles.demo}>Демо</span>}
         </nav>
         {notice && (
           <p className={styles.notice} role="status">
@@ -134,11 +138,7 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
           </section>
         ) : (
           <>
-            <section
-              className={styles.hero}
-              aria-labelledby="discipline-title"
-              data-has-quotes={quotes.length > 0}
-            >
+            <section className={styles.hero} aria-labelledby="discipline-title">
               <div className={styles.heroCopy}>
                 <div className={styles.heroMark}>
                   <DirectionMark direction={item.direction} size="s" />
@@ -154,6 +154,42 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                 >
                   {item.title}
                 </h1>
+                <div className={styles.heroActions} ref={heroActions}>
+                  <Button
+                    href={reviewFormHref(disciplineId)}
+                    size="l"
+                    className={styles.heroWriteButton}
+                  >
+                    <Icon icon={Pencil} size={18} />
+                    Оставить отзыв
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => void toggleFavorite()}
+                    disabled={favoriteDisabled}
+                    aria-pressed={favorite}
+                    aria-label={favorite ? 'Убрать из избранного' : 'В избранное'}
+                    className={cx(styles.favoriteButton, favorite && styles.favoriteSelected)}
+                  >
+                    <Icon icon={Heart} size={18} />
+                    <span>{favorite ? 'В избранном' : 'В избранное'}</span>
+                  </Button>
+                  <Button href="#reviews" variant="ghost">
+                    Читать отзывы <Icon icon={ArrowDown} size={16} />
+                  </Button>
+                </div>
+              </div>
+              <section
+                className={styles.recommendationPanel}
+                aria-labelledby="recommendation-title"
+                aria-busy={data.status === 'loading'}
+              >
+                <div className={styles.recommendationHeader}>
+                  <h2 id="recommendation-title">Рекомендуют</h2>
+                  {summary.recommendedPercent !== null && (
+                    <span>{summary.recommendedPercent}%</span>
+                  )}
+                </div>
                 <div className={styles.heroRating}>
                   <span className={styles.overall}>
                     <Icon icon={Star} size={30} className={styles.star} />
@@ -165,48 +201,28 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                       maximumFractionDigits: 1,
                     }) ?? '—'}
                   </span>
-                  <div>
-                    <a href="#reviews">
-                      {data.status === 'ready' ? reviewCount(summary.count) : 'Загружаем отзывы…'}
-                    </a>
-                    {data.status === 'ready' && (
-                      <small>
-                        {summary.recommendedPercent === null
-                          ? 'Оценок пока нет'
-                          : `${summary.recommendedPercent}% рекомендуют · оценки 4–5`}
-                      </small>
-                    )}
-                  </div>
+                  <a href="#reviews">
+                    {data.status === 'loading'
+                      ? 'Загружаем отзывы…'
+                      : reviewCount(data.status === 'ready' ? summary.count : item.reviewCount)}
+                  </a>
                 </div>
-                <div className={styles.heroActions}>
-                  <Button
-                    onClick={() => void toggleFavorite()}
-                    disabled={favoriteDisabled}
-                    aria-pressed={favorite}
-                    className={cx(styles.favoriteButton, favorite && styles.favoriteSelected)}
-                  >
-                    <Icon icon={Heart} size={18} />
-                    {favorite ? 'В избранном' : 'В избранное'}
-                  </Button>
-                  <Button href="#reviews" variant="secondary">
-                    Читать отзывы <Icon icon={ArrowDown} size={16} />
-                  </Button>
-                </div>
-              </div>
-              {quotes.length > 0 && (
-                <div className={styles.heroQuotes} aria-label="Из отзывов о майноре">
-                  {quotes.map((review) => (
-                    <blockquote key={review.id}>
-                      <p>
-                        {review.experience.length > 140
-                          ? `${review.experience.slice(0, 140).trim()}…`
-                          : review.experience}
-                      </p>
-                      <cite>{completionLabel(review)}</cite>
-                    </blockquote>
-                  ))}
-                </div>
-              )}
+                {summary.count > 0 && (
+                  <ol className={styles.distribution} aria-label="Распределение рекомендаций">
+                    {summary.distribution.map(({ rating, count }) => (
+                      <li key={rating} aria-label={`${rating} из 5, ${reviewCount(count)}`}>
+                        <span>
+                          {rating} <Icon icon={Star} size={12} className={styles.star} />
+                        </span>
+                        <span className={styles.histogramTrack} aria-hidden="true">
+                          <i style={{ width: `${(count / summary.count) * 100}%` }} />
+                        </span>
+                        <strong>{count}</strong>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
             </section>
             {account.favoritesStatus === 'error' && (
               <div className={styles.notice} role="alert">
@@ -239,203 +255,138 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
               </section>
             ) : (
               <div className={styles.layout}>
-                <div className={styles.primary}>
-                  <DisciplineRatings reviews={data.items} />
-                  {hints.length > 0 && (
-                    <section className={styles.panel} aria-labelledby="advice-title">
-                      <h2 id="advice-title">Что знать заранее</h2>
-                      <p className={styles.supporting}>
-                        Из ответов студентов на вопрос «Что хотелось бы знать перед выбором»
-                      </p>
-                      <div className={styles.adviceGrid}>
-                        {hints.map((review) => (
-                          <div className={styles.adviceCard} key={review.id}>
-                            <Icon icon={Lightbulb} size={20} />
-                            <div>
-                              <p>
-                                {review.advice.length > 230
-                                  ? `${review.advice.slice(0, 230).trim()}…`
-                                  : review.advice}
-                              </p>
-                              <button
-                                type="button"
-                                className={styles.textButton}
-                                onClick={() => revealReview(review.id)}
-                              >
-                                Читать отзыв <Icon icon={ArrowRight} size={13} />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  )}
-                  <section className={styles.reviews} id="reviews" aria-labelledby="reviews-title">
-                    <div className={styles.reviewsToolbar}>
-                      <div className={styles.sectionHeading}>
-                        <h2 id="reviews-title">Отзывы</h2>
-                        <span>{summary.count}</span>
-                      </div>
-                      <div className={styles.audiences} role="group" aria-label="Кто оставил отзыв">
-                        {(
-                          [
-                            { value: 'all', label: 'Все', count: summary.count },
-                            { value: 'completed', label: 'Прошли', count: summary.completed },
-                            { value: 'studying', label: 'На курсе', count: summary.studying },
-                          ] as const
-                        ).map((option) => (
+                <DisciplineRatings averages={summary.averages} />
+                {(data.summaryText || data.themes.length > 0) && (
+                  <section className={styles.panel} aria-labelledby="review-summary-title">
+                    <div className={styles.reviewSummaryHeader}>
+                      <h2 id="review-summary-title">Что говорят студенты</h2>
+                      {data.summaryText && (
+                        <span className={styles.reviewSummaryLabel}>
+                          <Icon icon={Sparkles} size={15} />
+                          Сгенерировано ИИ
+                        </span>
+                      )}
+                    </div>
+                    {data.summaryText && (
+                      <p className={styles.reviewSummaryText}>{data.summaryText}</p>
+                    )}
+                    {data.themes.length > 0 && (
+                      <div className={styles.themeList} role="group" aria-label="Темы отзывов">
+                        {data.themes.map(({ id, label, reviewIds }) => (
                           <button
                             type="button"
-                            key={option.value}
-                            className={cx(
-                              styles.audience,
-                              audience === option.value && styles.audienceSelected,
-                            )}
-                            aria-pressed={audience === option.value}
-                            onClick={() => {
-                              setAudience(option.value);
-                              setLimit(6);
-                            }}
+                            className={styles.themeChip}
+                            key={id}
+                            aria-pressed={id === theme?.id}
+                            aria-controls="reviews"
+                            aria-label={`${label}, ${reviewCount(reviewIds.length)}`}
+                            onClick={() => changeTheme(id)}
                           >
-                            {option.label} <span>{option.count}</span>
+                            {label}
+                            <span className={styles.themeCount} aria-hidden="true">
+                              {reviewIds.length}
+                            </span>
                           </button>
                         ))}
                       </div>
-                      <SelectMenu
-                        value={effectiveSort}
-                        onChange={(value) => {
-                          setSort(value);
-                          setLimit(6);
-                        }}
-                        options={sortOptions}
-                        label="Порядок отзывов"
-                      />
-                    </div>
-                    {summary.unknown > 0 && (
-                      <p className={styles.supporting}>
-                        У части отзывов статус прохождения не указан — они доступны во вкладке
-                        «Все».
-                      </p>
-                    )}
-                    <div className={styles.reviewList}>
-                      {visible.map((review) => (
-                        <DisciplineReviewCard
-                          key={review.id}
-                          review={review}
-                          voted={voting.votes.includes(review.id)}
-                          votingEnabled={isDemoCatalog}
-                          onVote={() => voting.toggle(review.id)}
-                        />
-                      ))}
-                    </div>
-                    {!visible.length && (
-                      <div className={styles.state}>
-                        <h3>
-                          {summary.count ? 'Таких отзывов пока нет' : 'Здесь будет первый отзыв'}
-                        </h3>
-                        <p>
-                          {summary.count
-                            ? 'Посмотрите все отзывы об этом майноре.'
-                            : 'Пока нет опубликованных оценок и впечатлений студентов.'}
-                        </p>
-                        {summary.count > 0 && (
-                          <Button variant="secondary" onClick={() => setAudience('all')}>
-                            Все отзывы
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                    {sorted.length > limit && (
-                      <div className={styles.more}>
-                        <Button
-                          variant="secondary"
-                          onClick={() => {
-                            const next = sorted[limit];
-                            setLimit((value) => value + 6);
-                            if (next) setRequestedReview({ id: next.id });
-                          }}
-                        >
-                          Показать ещё отзывы <Icon icon={ArrowDown} size={16} />
-                        </Button>
-                      </div>
                     )}
                   </section>
-                </div>
-                <aside className={styles.sidebar}>
-                  <section className={styles.writeCard}>
-                    <h2>Проходишь этот майнор?</h2>
-                    <p>Расскажи, как было: оценки, нагрузка и что стоит знать заранее.</p>
-                    <Button
-                      fullWidth
-                      className={styles.writeButton}
-                      href={reviewFormHref(disciplineId)}
+                )}
+                <section className={styles.reviews} id="reviews" aria-labelledby="reviews-title">
+                  <div className={styles.reviewsToolbar}>
+                    <div className={styles.sectionHeading}>
+                      <h2 id="reviews-title" tabIndex={-1}>
+                        Отзывы
+                      </h2>
+                      <span>{reviewItems.length}</span>
+                    </div>
+                    <SelectMenu
+                      value={effectiveSort}
+                      onChange={(value) => {
+                        setSort(value);
+                        setLimit(6);
+                      }}
+                      options={sortOptions}
+                      label="Порядок отзывов"
+                    />
+                  </div>
+                  {theme && (
+                    <button
+                      type="button"
+                      className={cx(styles.themeChip, styles.activeTheme)}
+                      aria-label={`Сбросить тему «${theme.label}»`}
+                      onClick={() => changeTheme(null)}
                     >
-                      <Icon icon={Pencil} size={17} />
-                      Оставить отзыв
-                    </Button>
-                    <small>Анонимно, после проверки</small>
-                  </section>
-                  <section className={styles.sidePanel} aria-labelledby="review-authors">
-                    <h2 id="review-authors">Кто оставил отзывы</h2>
-                    <dl className={styles.authorCounts}>
-                      <div>
-                        <dt>Прошли майнор</dt>
-                        <dd>{summary.completed}</dd>
-                      </div>
-                      <div>
-                        <dt>Сейчас на курсе</dt>
-                        <dd>{summary.studying}</dd>
-                      </div>
-                      {summary.unknown > 0 && (
-                        <div>
-                          <dt>Не указали статус</dt>
-                          <dd>{summary.unknown}</dd>
-                        </div>
-                      )}
-                      {summary.latest && (
-                        <div>
-                          <dt>Последний отзыв</dt>
-                          <dd>
-                            {new Intl.DateTimeFormat('ru-RU', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
-                            }).format(new Date(summary.latest))}
-                          </dd>
-                        </div>
-                      )}
-                    </dl>
-                  </section>
-                  {related.length > 0 && (
-                    <section className={styles.sidePanel} aria-labelledby="related-title">
-                      <h2 id="related-title">Ещё в группе «{DIRECTIONS[item.direction].label}»</h2>
-                      <ul className={styles.related}>
-                        {related.map((value) => (
-                          <li key={value.id}>
-                            <a href={disciplineHref(value.id)}>
-                              <span className={styles.relatedDot} />
-                              <span>{value.title}</span>
-                              <small>
-                                <Icon icon={Star} size={12} className={styles.star} />
-                                {value.rating?.toLocaleString('ru-RU', {
-                                  minimumFractionDigits: 1,
-                                  maximumFractionDigits: 1,
-                                }) ?? '—'}
-                              </small>
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
+                      {theme.label}
+                      <Icon icon={X} size={16} />
+                    </button>
                   )}
-                </aside>
+                  <div className={styles.reviewList}>
+                    {visible.map((review) => (
+                      <DisciplineReviewCard
+                        key={review.id}
+                        review={review}
+                        voted={voting.votes.includes(review.id)}
+                        votingEnabled={isDemoCatalog}
+                        onVote={() => voting.toggle(review.id)}
+                      />
+                    ))}
+                  </div>
+                  {!visible.length && (
+                    <div className={styles.state}>
+                      <h3>Здесь будет первый отзыв</h3>
+                      <p>Пока нет опубликованных оценок и впечатлений студентов.</p>
+                    </div>
+                  )}
+                  {sorted.length > limit && (
+                    <div className={styles.more}>
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          const next = sorted[limit];
+                          setLimit((value) => value + 6);
+                          if (next) setRequestedReview({ id: next.id });
+                        }}
+                      >
+                        Показать ещё отзывы <Icon icon={ArrowDown} size={16} />
+                      </Button>
+                    </div>
+                  )}
+                </section>
+                {related.length > 0 && (
+                  <section className={styles.panel} aria-labelledby="related-title">
+                    <h2 id="related-title">Ещё в группе «{DIRECTIONS[item.direction].label}»</h2>
+                    <ul className={styles.related}>
+                      {related.map((value) => (
+                        <li key={value.id}>
+                          <a href={disciplineHref(value.id)}>
+                            <span className={styles.relatedDot} />
+                            <span>{value.title}</span>
+                            <small>
+                              <Icon icon={Star} size={12} className={styles.star} />
+                              {value.rating?.toLocaleString('ru-RU', {
+                                minimumFractionDigits: 1,
+                                maximumFractionDigits: 1,
+                              }) ?? '—'}
+                            </small>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
               </div>
             )}
-            <div className={styles.mobileActions} role="region" aria-label="Действия с майнором">
+            <div
+              className={styles.mobileActions}
+              data-visible={heroPassed}
+              role="region"
+              aria-label="Действия с майнором"
+            >
               <IconButton
                 icon={Heart}
                 variant="secondary"
-                className={cx(styles.mobileFavorite, favorite && styles.favoriteSelected)}
+                className={favorite ? styles.favoriteSelected : undefined}
                 label={favorite ? 'Убрать из избранного' : 'В избранное'}
                 aria-pressed={favorite}
                 disabled={favoriteDisabled}

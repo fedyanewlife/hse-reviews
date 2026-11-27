@@ -2,7 +2,7 @@ import { ApiError, CatalogStorageError } from '../../shared/api/client';
 import { DEMO_DISCIPLINES } from './catalogDemo';
 import { FAVORITES_KEY, parseFavorites } from './catalogModel';
 import type { CatalogRepository } from './catalogRepository';
-import { demoPublishedReviews } from '../discipline/disciplineDemo';
+import { demoPublishedReviews, demoReviewInsights } from '../discipline/disciplineDemo';
 import { reviewSummary } from '../discipline/disciplineModel';
 
 const REVIEW_MARKER_KEY = 'otz-catalog-demo-reviews';
@@ -58,9 +58,10 @@ export function createDemoCatalogRepository(storage: DemoStorage): CatalogReposi
         };
       }),
     listReviews: async (id) => DEMO_DISCIPLINES.find((item) => item.id === id)?.reviews ?? [],
-    listPublishedReviews: async (id) => {
+    getDisciplineReviews: async (id) => {
       const item = DEMO_DISCIPLINES.find((value) => value.id === id);
-      return item ? demoPublishedReviews(item) : [];
+      const items = item ? demoPublishedReviews(item) : [];
+      return { items, ...demoReviewInsights(items) };
     },
     listFavorites: async () => parseFavorites(read(FAVORITES_KEY)),
     setFavorite: async (id, selected) => {

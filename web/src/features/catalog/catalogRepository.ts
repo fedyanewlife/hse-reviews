@@ -1,12 +1,12 @@
 import type { Discipline, ReviewExcerpt, ReviewInput, ReviewStatus } from './catalogTypes';
 import { createApiCatalogRepository } from './catalogApi';
-import type { PublishedReview } from '../discipline/disciplineTypes';
+import type { DisciplineReviews } from '../discipline/disciplineTypes';
 
 /** UI не знает, где хранятся данные: обе реализации соблюдают один контракт. */
 export interface CatalogRepository {
   listDisciplines(signal?: AbortSignal): Promise<readonly Discipline[]>;
   listReviews(id: string, signal?: AbortSignal): Promise<readonly ReviewExcerpt[]>;
-  listPublishedReviews(id: string, signal?: AbortSignal): Promise<readonly PublishedReview[]>;
+  getDisciplineReviews(id: string, signal?: AbortSignal): Promise<DisciplineReviews>;
   listFavorites(signal?: AbortSignal): Promise<string[]>;
   setFavorite(id: string, selected: boolean): Promise<void>;
   createReview(input: ReviewInput): Promise<ReviewStatus>;
@@ -34,7 +34,7 @@ export const catalogRepository: CatalogRepository = isDemoCatalog
   ? {
       listDisciplines: async (signal) => (await demo()).listDisciplines(signal),
       listReviews: async (id, signal) => (await demo()).listReviews(id, signal),
-      listPublishedReviews: async (id, signal) => (await demo()).listPublishedReviews(id, signal),
+      getDisciplineReviews: async (id, signal) => (await demo()).getDisciplineReviews(id, signal),
       listFavorites: async (signal) => (await demo()).listFavorites(signal),
       setFavorite: async (id, selected) => (await demo()).setFavorite(id, selected),
       createReview: async (input) => (await demo()).createReview(input),

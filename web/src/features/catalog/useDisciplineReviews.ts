@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { catalogRepository } from './catalogRepository';
-import type { PublishedReview } from '../discipline/disciplineTypes';
+import type { DisciplineReviews } from '../discipline/disciplineTypes';
 
-type ReviewState = {
+type ReviewState = DisciplineReviews & {
   id: string | null;
   status: 'loading' | 'ready' | 'error';
-  items: readonly PublishedReview[];
   error: unknown;
 };
+
+const emptyReviews = { items: [], themes: [], summaryText: null } satisfies DisciplineReviews;
 
 export function useDisciplineReviews(id: string | null) {
   const [state, setState] = useState<ReviewState>({
     id: null,
     status: 'loading',
-    items: [],
+    ...emptyReviews,
     error: null,
   });
   const [attempt, setAttempt] = useState(0);
@@ -21,21 +22,21 @@ export function useDisciplineReviews(id: string | null) {
     if (id === null) return;
     const controller = new AbortController();
     catalogRepository
-      .listPublishedReviews(id, controller.signal)
-      .then((items) => {
-        if (!controller.signal.aborted) setState({ id, status: 'ready', items, error: null });
+      .getDisciplineReviews(id, controller.signal)
+      .then((reviews) => {
+        if (!controller.signal.aborted) setState({ id, status: 'ready', ...reviews, error: null });
       })
       .catch((error: unknown) => {
-        if (!controller.signal.aborted) setState({ id, status: 'error', items: [], error });
+        if (!controller.signal.aborted) setState({ id, status: 'error', ...emptyReviews, error });
       });
     return () => controller.abort();
   }, [id, attempt]);
   const retry = () => {
-    setState({ id, status: 'loading', items: [], error: null });
+    setState({ id, status: 'loading', ...emptyReviews, error: null });
     setAttempt((value) => value + 1);
   };
   return {
-    ...(state.id === id ? state : { id, status: 'loading' as const, items: [], error: null }),
+    ...(state.id === id ? state : { id, status: 'loading' as const, ...emptyReviews, error: null }),
     retry,
   };
 }

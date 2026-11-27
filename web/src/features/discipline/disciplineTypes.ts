@@ -12,12 +12,21 @@ export type PublishedReview = {
   createdAt: string | null;
   helpfulCount: number | null;
 };
-export type ReviewAudience = 'all' | 'completed' | 'studying';
 export type ReviewSort = 'newest' | 'helpful' | 'highest' | 'lowest';
+export type ReviewTheme = {
+  id: string;
+  label: string;
+  reviewIds: readonly string[];
+};
+export type DisciplineReviews = {
+  items: readonly PublishedReview[];
+  themes: readonly ReviewTheme[];
+  summaryText: string | null;
+};
 
 export const METRIC_CRITERIA = [
-  { key: 'difficulty', label: 'Сложность', description: 'Насколько трудно' },
-  { key: 'workload', label: 'Нагрузка', description: 'Сколько времени уходит' },
-  { key: 'interest', label: 'Интерес', description: 'Насколько увлекает' },
-  { key: 'usefulness', label: 'Польза', description: 'Для учёбы и работы' },
+  { key: 'difficulty', label: 'Сложность' },
+  { key: 'workload', label: 'Нагрузка' },
+  { key: 'interest', label: 'Интерес' },
+  { key: 'usefulness', label: 'Польза' },
 ] as const;

@@ -26,14 +26,6 @@
 .breadcrumb a:hover {
   text-decoration: underline;
 }
-.demo {
-  margin-left: auto;
-  padding: 3px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  color: var(--text-2);
-  font-size: 12px;
-}
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(240px, 0.85fr);
@@ -43,9 +35,6 @@
   padding: var(--space-10);
   border-radius: 22px;
   background: linear-gradient(115deg, var(--discipline-tint), var(--dir-soc-bg));
-}
-.hero[data-has-quotes='false'] {
-  grid-template-columns: minmax(0, 1fr);
 }
 .heroCopy {
   min-width: 0;
@@ -70,12 +59,33 @@
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
+.recommendationPanel {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+.recommendationHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.recommendationHeader > span {
+  color: var(--logo);
+  font-size: var(--type-body);
+  font-weight: var(--weight-bold);
+}
 .heroRating {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--space-4);
-  margin-top: var(--space-6);
+  gap: var(--space-3);
 }
 .overall {
   display: inline-flex;
@@ -86,18 +96,13 @@
   font-variant-numeric: tabular-nums;
 }
 .heroRating a {
-  color: var(--text);
-  font-weight: var(--weight-bold);
+  color: var(--logo);
+  font-size: var(--type-body);
+  font-weight: var(--weight-semibold);
   text-decoration: none;
 }
 .heroRating a:hover {
   text-decoration: underline;
-}
-.heroRating small {
-  display: block;
-  margin-top: var(--space-1);
-  color: var(--text-2);
-  font-size: var(--type-xs);
 }
 .heroActions {
   display: flex;
@@ -106,44 +111,9 @@
   gap: var(--space-3);
   margin-top: var(--space-6);
 }
-.heroQuotes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding-bottom: var(--space-2);
-}
-.heroQuotes blockquote {
-  position: relative;
-  margin: 0;
-  padding: var(--space-5);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-l);
-  background: var(--surface);
-  font-size: var(--type-sm);
-  line-height: 1.55;
-}
-.heroQuotes blockquote:nth-child(2) {
-  margin-left: var(--space-6);
-}
-.heroQuotes blockquote::after {
-  position: absolute;
-  bottom: -6px;
-  left: 26px;
-  width: 12px;
-  height: 12px;
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  background: inherit;
-  transform: rotate(45deg);
-  content: '';
-}
-.heroQuotes p {
-  margin: 0 0 var(--space-2);
-}
-.heroQuotes cite {
-  color: var(--text-2);
-  font-size: var(--type-xs);
-  font-style: normal;
+.heroActions .heroWriteButton {
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-float);
 }
 .star {
   flex: none;
@@ -154,21 +124,13 @@
   fill: currentColor;
 }
 .layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 308px;
-  align-items: start;
-  gap: var(--space-6);
-  margin-top: var(--space-8);
-}
-.primary,
-.sidebar {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
   min-width: 0;
+  margin-top: var(--space-8);
 }
 .panel,
-.sidePanel,
 .reviewCard {
   min-width: 0;
   padding: var(--space-6);
@@ -177,21 +139,26 @@
   background: var(--surface);
 }
 .panel h2,
+.recommendationHeader h2,
 .reviews h2,
 .state h2 {
   margin: 0;
   font: var(--weight-semibold) var(--type-h3)/1.35 var(--font-display);
   letter-spacing: var(--tracking-display);
 }
+.reviews h2 {
+  font-size: clamp(24px, 2.5vw, var(--type-h2));
+}
 .sectionHeading {
   display: flex;
   align-items: baseline;
-  flex-wrap: wrap;
   gap: var(--space-3);
 }
 .sectionHeading > span {
   color: var(--text-2);
-  font-size: var(--type-sm);
+  font-size: clamp(var(--type-lg), 2vw, var(--type-h3));
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
 }
 .supporting {
   margin: var(--space-2) 0 0;
@@ -199,44 +166,33 @@
   font-size: var(--type-xs);
   line-height: 1.65;
 }
-.ratingsLayout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(165px, 0.75fr);
-  gap: var(--space-8);
-  margin-top: var(--space-6);
-}
 .metrics {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-6);
+  margin-top: var(--space-5);
 }
 .metric {
   display: grid;
-  grid-template-columns: 100px minmax(0, 1fr) 36px;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-3) var(--space-4);
 }
 .metric strong {
-  font-size: var(--type-sm);
-}
-.metric small {
-  display: block;
-  margin-top: var(--space-1);
-  color: var(--text-2);
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: var(--type-body);
 }
 .meter {
   display: flex;
+  grid-column: 1 / -1;
   gap: var(--space-1);
 }
 .meter > span {
   flex: 1;
-  height: 9px;
+  height: var(--space-3);
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
-  background: var(--surface-subtle);
+  background: var(--surface-muted);
 }
 .meter i {
   display: block;
@@ -248,19 +204,15 @@
   background: var(--discipline-accent);
 }
 .metricValue {
-  font: var(--weight-semibold) 18px/1.3 var(--font-display);
+  font: var(--weight-semibold) var(--type-h2)/1.2 var(--font-display);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-.distribution h3 {
-  margin: 0;
-  font-size: var(--type-sm);
-}
-.distribution ol {
+.distribution {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  margin: var(--space-5) 0 0;
+  gap: var(--space-1);
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -293,30 +245,65 @@
   border-radius: inherit;
   background: var(--star);
 }
-.adviceGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+.reviewSummaryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+.reviewSummaryLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-2);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+}
+.reviewSummaryText {
+  max-inline-size: 84ch;
+  margin: var(--space-3) 0 0;
+  line-height: var(--lh-body);
+  overflow-wrap: anywhere;
+}
+.themeList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   margin-top: var(--space-5);
 }
-.adviceCard {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border-radius: var(--radius-m);
+.themeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  min-height: var(--control-h);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--text);
+  font: var(--weight-semibold) var(--type-sm)/var(--lh-sm) var(--font-body);
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.themeChip:hover {
   background: var(--surface-subtle);
 }
-.adviceCard > svg {
-  flex: none;
-  margin-top: 3px;
-  color: var(--discipline-accent);
+.themeChip[aria-pressed='true'],
+.activeTheme {
+  border-color: var(--discipline-accent);
+  background: var(--discipline-tint);
 }
-.adviceCard p {
-  margin: 0;
-  font-size: var(--type-sm);
-  line-height: 1.6;
-  overflow-wrap: anywhere;
+.themeChip > svg,
+.themeCount {
+  flex: none;
+}
+.themeCount {
+  color: var(--text-2);
+  font-size: var(--type-xs);
+  font-variant-numeric: tabular-nums;
 }
 .textButton {
   display: inline-flex;
@@ -348,34 +335,6 @@
 }
 .reviewsToolbar > .sectionHeading {
   margin-right: auto;
-}
-.audiences {
-  display: flex;
-  gap: var(--space-1);
-  max-width: 100%;
-  padding: var(--space-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  background: var(--surface-subtle);
-}
-.audience {
-  min-height: 36px;
-  padding: 0 var(--space-3);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: none;
-  color: var(--text-2);
-  font: var(--weight-semibold) var(--type-xs)/var(--lh-xs) var(--font-body);
-  white-space: nowrap;
-  cursor: pointer;
-}
-.audience > span {
-  opacity: 0.75;
-}
-.audienceSelected {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 1px 4px var(--border);
 }
 .reviewList {
   display: flex;
@@ -410,10 +369,6 @@
 }
 .completion {
   background: var(--surface-subtle);
-}
-.reviewHeader time {
-  margin-left: auto;
-  color: var(--text-2);
 }
 .reviewMetrics {
   display: flex;
@@ -472,66 +427,16 @@
   background: var(--surface-muted);
   border-color: var(--text-2);
 }
-.sidePanel h2 {
-  margin: 0;
-  font-size: var(--type-body);
-  line-height: 1.5;
-}
-.writeCard {
-  padding: var(--space-6);
-  border-radius: var(--radius-l);
-  background: var(--inverse-bg);
-  color: var(--inverse-fg);
-}
-.writeCard h2 {
-  margin: 0;
-  font: var(--weight-semibold) 19px/1.4 var(--font-display);
-  letter-spacing: var(--tracking-display);
-}
-.writeCard p {
-  margin-block: var(--space-3) var(--space-5);
-  font-size: var(--type-sm);
-  line-height: 1.6;
-  opacity: 0.8;
-}
-.writeCard .writeButton {
-  --action-bg: var(--inverse-fg);
-  --action-bg-hover: var(--inverse-fg);
-  --action-fg: var(--inverse-bg);
-}
-.writeCard small {
-  display: block;
-  margin-top: var(--space-3);
-  font-size: 12px;
-  text-align: center;
-  opacity: 0.7;
-}
-.authorCounts {
-  margin: var(--space-4) 0 0;
-  font-size: var(--type-xs);
-}
-.authorCounts > div {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
-}
-.authorCounts dt {
-  color: var(--text-2);
-}
-.authorCounts dd {
-  flex: none;
-  margin: 0;
-  font-weight: var(--weight-bold);
-  text-align: right;
-}
 .related {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 0 var(--space-6);
   margin: var(--space-3) 0 0;
   padding: 0;
   list-style: none;
 }
-.related li + li {
+.related li {
+  min-width: 0;
   border-top: 1px solid var(--border);
 }
 .related a {
@@ -548,6 +453,10 @@
 .related a:hover > span:nth-child(2) {
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+.related a > span:nth-child(2) {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .relatedDot {
   flex: none;
@@ -629,36 +538,10 @@
     gap: var(--space-6);
     padding: var(--space-8);
   }
-  .layout {
-    grid-template-columns: minmax(0, 1fr) 270px;
-  }
-  .ratingsLayout {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 @media (max-width: 999px) {
   .hero {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .heroQuotes {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .heroQuotes blockquote:nth-child(2) {
-    margin-left: 0;
-  }
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .ratingsLayout {
-    grid-template-columns: minmax(0, 1.4fr) minmax(180px, 0.8fr);
-  }
-  .sidebar {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .writeCard {
-    grid-column: 1 / -1;
   }
 }
 @media (max-width: 768px) {
@@ -687,63 +570,35 @@
   .heroMark {
     font-size: 12px;
   }
-  .heroRating {
-    gap: var(--space-3);
+  .recommendationPanel {
+    padding: var(--space-4);
   }
   .overall {
     font-size: 32px;
   }
-  .heroQuotes {
-    grid-template-columns: minmax(0, 1fr);
+  .heroActions .heroWriteButton {
+    flex-basis: 100%;
   }
-  .heroQuotes blockquote {
-    padding: var(--space-4);
+  .heroActions .favoriteButton {
+    width: var(--control-h);
+    padding-inline: 0;
   }
-  .heroQuotes blockquote:nth-child(2) {
-    display: none;
-  }
-  .heroActions > button {
+  .favoriteButton > span {
     display: none;
   }
   .layout {
     margin-top: var(--space-5);
   }
   .panel,
-  .sidePanel,
   .reviewCard {
     padding: var(--space-5);
   }
   .panel h2,
-  .reviews h2 {
+  .recommendationHeader h2 {
     font-size: 19px;
-  }
-  .ratingsLayout,
-  .adviceGrid,
-  .sidebar {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .metric {
-    grid-template-columns: 92px minmax(0, 1fr) 32px;
-    gap: var(--space-2);
-  }
-  .metricValue {
-    font-size: 16px;
   }
   .reviewsToolbar > .sectionHeading {
     flex: 1;
-  }
-  .audiences {
-    order: 3;
-    justify-content: space-between;
-    width: 100%;
-  }
-  .audience {
-    flex: 1;
-    padding-inline: var(--space-2);
-  }
-  .reviewHeader time {
-    width: 100%;
-    margin: var(--space-1) 0 0;
   }
   .reviewText {
     font-size: var(--type-sm);
@@ -754,23 +609,39 @@
   .reviewMetrics > div {
     padding-inline: var(--space-2);
   }
-  .writeCard {
-    display: none;
-  }
   .mobileActions {
     position: fixed;
     right: 0;
     bottom: 0;
     left: 0;
     z-index: 8;
-    display: flex;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4) max(var(--space-3), env(safe-area-inset-bottom));
     border-top: 1px solid var(--border);
     background: var(--surface);
   }
+  .mobileActions[data-visible='true'],
+  .mobileActions:focus-within {
+    display: flex;
+  }
   .mobileActions > :last-child {
     flex: 1;
+  }
+}
+@media (max-width: 600px) {
+  .metrics {
+    gap: var(--space-4);
+  }
+  .metric {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+  .metric strong {
+    font-size: var(--type-sm);
+  }
+  .metricValue {
+    font-size: var(--type-h3);
+    text-align: left;
   }
 }
 @media (max-width: 359px) {
@@ -780,8 +651,5 @@
   .panel,
   .reviewCard {
     padding: var(--space-4);
-  }
-  .metric {
-    grid-template-columns: 84px minmax(0, 1fr) 32px;
   }
 }

@@ -44,7 +44,7 @@ const records = [
   review('4', 1, 'unknown'),
 ];
 
-test('summary computes recommendation distribution and keeps unknown completion separate', () => {
+test('summary computes recommendation averages and distribution', () => {
   const summary = model.reviewSummary(records);
   assert.equal(summary.count, 4);
   assert.equal(summary.averages.recommendation, 3.25);
@@ -53,13 +53,9 @@ test('summary computes recommendation distribution and keeps unknown completion 
     summary.distribution.map((value) => value.count),
     [1, 1, 1, 0, 1],
   );
-  assert.equal(summary.completed, 2);
-  assert.equal(summary.studying, 1);
-  assert.equal(summary.unknown, 1);
   const empty = model.reviewSummary([]);
   assert.equal(empty.averages.recommendation, null);
   assert.equal(empty.recommendedPercent, null);
-  assert.equal(empty.latest, null);
 });
 
 test('year labels preserve the distinction between earlier, ongoing and unknown', () => {
@@ -69,21 +65,17 @@ test('year labels preserve the distinction between earlier, ongoing and unknown'
   assert.equal(model.completionLabel(records[3]), 'Год прохождения не указан');
 });
 
-test('review audience and sorting work without modifying source data', () => {
+test('sorting reviews does not modify the source data', () => {
   const source = records.map((value) => ({ ...value }));
   assert.deepEqual(
-    model.selectReviews(source, 'completed', 'highest').map((value) => value.id),
-    ['1', '2'],
+    model.sortReviews(source, 'highest').map((value) => value.id),
+    ['1', '3', '2', '4'],
   );
   assert.deepEqual(
-    model.selectReviews(source, 'studying', 'newest').map((value) => value.id),
-    ['3'],
-  );
-  assert.deepEqual(
-    model.selectReviews(source, 'all', 'lowest').map((value) => value.id),
+    model.sortReviews(source, 'lowest').map((value) => value.id),
     ['4', '2', '3', '1'],
   );
-  assert.equal(model.selectReviews(source, 'all', 'helpful', ['3'])[0].id, '3');
+  assert.equal(model.sortReviews(source, 'helpful', ['3'])[0].id, '3');
   assert.deepEqual(
     source.map((value) => value.id),
     ['1', '2', '3', '4'],
@@ -92,22 +84,7 @@ test('review audience and sorting work without modifying source data', () => {
     review('a', 5, 'unknown', '2026-10-01T01:00:00+03:00'),
     review('b', 5, 'unknown', '2026-09-30T23:00:00Z'),
   ];
-  assert.equal(model.selectReviews(dates, 'all', 'newest')[0].id, 'b');
-  assert.equal(model.reviewSummary(dates).latest, dates[1].createdAt);
-});
-
-test('advice uses original responses, omits blanks and repeated answers', () => {
-  assert.deepEqual(
-    model
-      .adviceReviews(
-        records.map((value, index) => ({
-          ...value,
-          advice: ['Совет', '  Совет  ', '', 'Второй совет'][index],
-        })),
-      )
-      .map((value) => value.id),
-    ['1', '4'],
-  );
+  assert.equal(model.sortReviews(dates, 'newest')[0].id, 'b');
 });
 
 const dto = {
@@ -158,25 +135,64 @@ test('detail reviews use the existing endpoint with credentials and cancellation
       return new Response(JSON.stringify({ items: [dto] }), { status: 200 });
     },
   });
-  assert.equal(
-    (await repository.listPublishedReviews('42', controller.signal))[0].advice,
-    dto.selection_advice,
+  const { items, themes, summaryText } = await repository.getDisciplineReviews(
+    '42',
+    controller.signal,
   );
+  assert.equal(items[0].advice, dto.selection_advice);
+  assert.deepEqual(themes, []);
+  assert.equal(summaryText, null);
+});
+
+test('review themes keep only distinct IDs of published source reviews', async () => {
+  const items = [dto, { ...dto, id: 8 }, { ...dto, id: 9 }];
+  const repository = api.createApiCatalogRepository({
+    fetcher: async () =>
+      new Response(
+        JSON.stringify({
+          items,
+          summary: '  Практические задания помогают разобраться в материале.  ',
+          themes: [
+            { id: 'practice', label: ' Практика ', review_ids: [7, 99, 7, 8, '9'] },
+            { id: 'practice', label: 'Дубликат', review_ids: [7, 9] },
+            { id: 'singleton', label: 'Один источник', review_ids: [7, 7, 99] },
+            { id: 'invalid', label: ' ', review_ids: [7, 8] },
+            null,
+          ],
+        }),
+        { status: 200 },
+      ),
+  });
+  const feed = await repository.getDisciplineReviews('42');
+  assert.equal(feed.items.length, 3);
+  assert.deepEqual(feed.themes, [{ id: 'practice', label: 'Практика', reviewIds: ['7', '8'] }]);
+  assert.equal(feed.summaryText, 'Практические задания помогают разобраться в материале.');
 });
 
 test('demo catalog ratings and counts agree with the detail review dataset for every discipline', async () => {
   const items = await demoRepository.listDisciplines();
   for (const item of items) {
-    const reviews = await demoRepository.listPublishedReviews(item.id);
+    const { items: reviews, themes } = await demoRepository.getDisciplineReviews(item.id);
     const summary = model.reviewSummary(reviews);
     assert.equal(item.reviewCount, summary.count);
     assert.equal(item.rating, Number(summary.averages.recommendation.toFixed(1)));
     assert.equal(new Set(reviews.map((value) => value.id)).size, reviews.length);
+    for (const theme of themes) {
+      assert.ok(new Set(theme.reviewIds).size >= 2);
+      assert.ok(theme.reviewIds.every((id) => reviews.some((review) => review.id === id)));
+    }
   }
-  assert.deepEqual(await demoRepository.listPublishedReviews('missing'), []);
+  const { themes, summaryText } = await demoRepository.getDisciplineReviews('data-analysis');
+  assert.ok(themes.some((theme) => theme.id === 'practice'));
+  assert.match(summaryText, /практические задания/iu);
+  assert.deepEqual(await demoRepository.getDisciplineReviews('missing'), {
+    items: [],
+    themes: [],
+    summaryText: null,
+  });
 });
 
-test('review card shows survey criteria and advice even when experience is empty', () => {
+test('review card shows criteria and advice without exposing the publication date', () => {
   const html = renderToStaticMarkup(
     createElement(ReviewCard, {
       review: { ...records[0], advice: 'Проверить расписание' },
@@ -196,4 +212,5 @@ test('review card shows survey criteria and advice even when experience is empty
   ])
     assert.ok(html.includes(label));
   assert.match(html, /aria-pressed="false"/);
+  assert.doesNotMatch(html, /<time\b|отзыв от/iu);
 });

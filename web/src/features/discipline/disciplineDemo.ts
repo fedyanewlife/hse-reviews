@@ -1,5 +1,5 @@
 import type { Discipline } from '../catalog/catalogTypes';
-import type { PublishedReview } from './disciplineTypes';
+import type { DisciplineReviews, PublishedReview } from './disciplineTypes';
 
 // Synthetic survey answers for development, never returned by the API adapter.
 const experiences = [
@@ -23,6 +23,71 @@ const itTips = [
   'Часть материала придётся разбирать самостоятельно, помимо лекций и семинаров. Планируй время на практику.',
   'Машинное обучение начинается не сразу: в первых модулях больше работы с Python и данными.',
 ];
+
+const themePatterns = [
+  {
+    id: 'practice',
+    label: 'Практика',
+    pattern: /практик|практическ/iu,
+    sentence: 'Студенты отмечают, что практические задания помогают разобраться в материале.',
+  },
+  {
+    id: 'workload',
+    label: 'Нагрузка',
+    pattern: /нагрузк|несколько часов|несколько вечеров|дедлайн|не откладывать/iu,
+    sentence: 'На задания советуют выделять время заранее, особенно перед дедлайнами.',
+  },
+  {
+    id: 'preparation',
+    label: 'Базовые знания',
+    pattern: /базов|основы|требовани[а-яё]* к подготовке/iu,
+    sentence: 'Перед началом занятий стоит посмотреть программу и повторить основы.',
+  },
+  {
+    id: 'self-study',
+    label: 'Самостоятельная работа',
+    pattern: /самостоятельн/iu,
+    sentence: 'Часть материала приходится разбирать самостоятельно.',
+  },
+  {
+    id: 'feedback',
+    label: 'Обратная связь',
+    pattern: /обратн[а-яё]+ связ/iu,
+    sentence: 'Обратная связь помогает понять ошибки и доработать задания.',
+  },
+  {
+    id: 'assessment',
+    label: 'Оценивание',
+    pattern: /оценива|экзамен|контрольн/iu,
+    sentence: 'Студенты советуют заранее разобраться, как оцениваются задания и экзамен.',
+  },
+];
+
+// The demo summarizes repeated themes using prepared sentences.
+export function demoReviewInsights(
+  reviews: readonly PublishedReview[],
+): Pick<DisciplineReviews, 'themes' | 'summaryText'> {
+  const matches = themePatterns
+    .map(({ id, label, pattern, sentence }) => ({
+      id,
+      label,
+      sentence,
+      reviewIds: reviews
+        .filter(({ experience, advice }) => pattern.test(`${experience}\n${advice}`))
+        .map((review) => review.id),
+    }))
+    .filter(({ reviewIds }) => reviewIds.length > 1)
+    .sort((a, b) => b.reviewIds.length - a.reviewIds.length);
+
+  return {
+    themes: matches.map(({ id, label, reviewIds }) => ({ id, label, reviewIds })),
+    summaryText:
+      matches
+        .slice(0, 3)
+        .map(({ sentence }) => sentence)
+        .join(' ') || null,
+  };
+}
 
 export function demoPublishedReviews(item: Discipline): PublishedReview[] {
   if (item.reviewCount === 0) return [];

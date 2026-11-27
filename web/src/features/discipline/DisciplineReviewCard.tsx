@@ -7,9 +7,6 @@ import { completionLabel } from './disciplineModel';
 import { METRIC_CRITERIA, type PublishedReview } from './disciplineTypes';
 import styles from './DisciplinePage.module.css';
 
-const formatReviewDate = (value: string) =>
-  new Intl.DateTimeFormat('ru-RU', { month: 'short', year: 'numeric' }).format(new Date(value));
-
 type ReviewCardProps =
   | {
       preview?: false;
@@ -31,10 +28,9 @@ export function DisciplineReviewCard(props: ReviewCardProps) {
   const [expanded, setExpanded] = useState(false);
   const long = review.experience.length > 600;
   const completion = props.preview ? props.completion : completionLabel(props.review);
-  const createdAt = props.preview ? null : props.review.createdAt;
   const recommendation = review.ratings.recommendation;
   const metrics = METRIC_CRITERIA.filter(({ key }) => review.ratings[key] !== undefined);
-  const hasHeader = !!(completion || recommendation || createdAt);
+  const hasHeader = Boolean(completion) || recommendation !== undefined;
   return (
     <article
       className={styles.reviewCard}
@@ -56,7 +52,6 @@ export function DisciplineReviewCard(props: ReviewCardProps) {
                   : 'сомневается'}
             </span>
           )}
-          {createdAt && <time dateTime={createdAt}>отзыв от {formatReviewDate(createdAt)}</time>}
         </div>
       )}
       {metrics.length > 0 && (
