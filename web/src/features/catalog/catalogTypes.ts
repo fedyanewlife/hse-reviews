@@ -19,7 +19,6 @@ export const CATALOG_DIRECTIONS = (Object.keys(DIRECTIONS) as CatalogDirection[]
   label: DIRECTIONS[id].label,
 }));
 
-export type CatalogView = 'disciplines' | 'favorites';
 export type CatalogSort = 'reviews' | 'rating' | 'title';
 export type CatalogFilters = {
   query: string;

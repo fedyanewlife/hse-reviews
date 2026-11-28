@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { parseFavorites } from '../catalog/catalogModel';
 import { CatalogStorageError } from '../../shared/api/client';
 
 const KEY = 'otz-demo-helpful-review-ids';
@@ -7,7 +6,10 @@ export function useHelpfulVotes(enabled: boolean, onError: (error: string) => vo
   const [votes, setVotes] = useState<string[]>(() => {
     if (!enabled) return [];
     try {
-      return parseFavorites(localStorage.getItem(KEY));
+      const stored: unknown = JSON.parse(localStorage.getItem(KEY) ?? '[]');
+      return Array.isArray(stored)
+        ? [...new Set(stored.filter((id): id is string => typeof id === 'string'))]
+        : [];
     } catch {
       return [];
     }

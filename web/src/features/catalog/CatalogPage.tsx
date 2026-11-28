@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowRight, Heart, Pencil, Search } from 'lucide-react';
+import { ArrowDown, Pencil, Search } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { SearchField } from '../../components/ui/SearchField';
@@ -7,11 +7,9 @@ import { cx } from '../../lib/cx';
 import { errorMessage, isUnauthorized } from '../../shared/api/client';
 import { isDemoCatalog } from './catalogRepository';
 import { CatalogHeader } from './CatalogHeader';
-import { useCatalogAccount } from './useCatalogAccount';
 import { CatalogCard, CatalogSkeleton } from './CatalogCard';
 import { CatalogFilterBar } from './CatalogFilterBar';
 import { HeroReviews } from './HeroReviews';
-import { FavoriteHeroCards } from './FavoriteHeroCards';
 import { reviewFormHref } from '../review-form/reviewFormModel';
 import {
   DEFAULT_CATALOG_FILTERS,
@@ -19,25 +17,17 @@ import {
   reviewCount,
   PAGE_SIZE,
   selectDisciplines,
-  selectFavoriteDisciplines,
 } from './catalogModel';
-import type { CatalogFilters, CatalogView } from './catalogTypes';
+import type { CatalogFilters } from './catalogTypes';
 import { useCatalog } from './useCatalog';
 import styles from './CatalogPage.module.css';
 
 export function CatalogPage() {
   const preview = isDemoCatalog ? new URLSearchParams(window.location.search).get('state') : null;
   const { items, status, error: catalogError, retry } = useCatalog(preview);
-  const account = useCatalogAccount();
-  const favorites = account.favorites;
-  const [view, setView] = useState<CatalogView>(() => {
-    const value = new URLSearchParams(window.location.search).get('view');
-    return value === 'favorites' ? 'favorites' : 'disciplines';
-  });
   useEffect(() => {
-    const title = view === 'favorites' ? 'Избранное' : 'Майноры';
-    document.title = `${title} — ОтзоВышка`;
-  }, [view]);
+    document.title = 'Майноры — ОтзоВышка';
+  }, []);
   const [filters, setFilters] = useState<CatalogFilters>(() => ({
     ...DEFAULT_CATALOG_FILTERS,
     query: preview === 'empty' ? 'Квантовая кулинария' : '',
@@ -74,18 +64,8 @@ export function CatalogPage() {
     }
   }, [visibleCount]);
 
-  const favoriteItems = selectFavoriteDisciplines(items, favorites);
-  const source = view === 'favorites' ? favoriteItems : items;
-  const filtered = selectDisciplines(source, filters);
+  const filtered = selectDisciplines(items, filters);
   const visible = filtered.slice(0, visibleCount);
-  const loading =
-    status === 'loading' || (view === 'favorites' && account.favoritesStatus === 'loading');
-  const viewError =
-    status === 'error'
-      ? catalogError
-      : view === 'favorites' && account.favoritesStatus === 'error'
-        ? account.favoritesError
-        : null;
   const heroReviews = items.flatMap((item) =>
     item.reviews
       .map((review, index) => ({
@@ -105,28 +85,13 @@ export function CatalogPage() {
     setFilters({ ...DEFAULT_CATALOG_FILTERS });
     setVisibleCount(PAGE_SIZE);
   }
-  function changeView(next: CatalogView) {
-    setView(next);
-    setVisibleCount(PAGE_SIZE);
-    const url = new URL(window.location.href);
-    if (next === 'disciplines') url.searchParams.delete('view');
-    else url.searchParams.set('view', next);
-    window.history.replaceState(null, '', url);
-  }
-  async function toggleFavorite(id: string) {
-    try {
-      await account.toggleFavorite(id);
-    } catch (error) {
-      setNotice(errorMessage(error));
-    }
-  }
 
   return (
     <div className={styles.page}>
       <a href="#main-content" className={styles.skipLink}>
         К содержимому
       </a>
-      <CatalogHeader view={view} onViewChange={changeView} onError={setNotice} />
+      <CatalogHeader onError={setNotice} />
 
       <main id="main-content" className={styles.main}>
         {notice && (
@@ -135,11 +100,7 @@ export function CatalogPage() {
           </p>
         )}
         <section
-          className={cx(
-            styles.hero,
-            view === 'favorites' ? styles.heroFavorites : styles.heroCatalog,
-            view === 'favorites' && !favoriteItems.length && styles.heroFavoritesEmpty,
-          )}
+          className={cx(styles.hero, styles.heroCatalog)}
           aria-labelledby="catalog-title"
           onMouseEnter={() => setHeroHovered(true)}
           onMouseLeave={() => setHeroHovered(false)}
@@ -149,14 +110,8 @@ export function CatalogPage() {
           }}
         >
           <div className={styles.heroCopy}>
-            <p className={styles.eyebrow} role={view === 'favorites' ? 'status' : undefined}>
-              {view === 'favorites' ? (
-                status === 'ready' && account.favoritesStatus === 'ready' ? (
-                  `${minorCount(favoriteItems.length)} в избранном`
-                ) : (
-                  'Ваши сохранённые майноры'
-                )
-              ) : status === 'ready' ? (
+            <p className={styles.eyebrow}>
+              {status === 'ready' ? (
                 <>
                   {minorCount(isDemoCatalog ? 30 : items.length)} <span aria-hidden="true">·</span>{' '}
                   {reviewCount(isDemoCatalog ? 200 : totalReviews)}
@@ -166,60 +121,21 @@ export function CatalogPage() {
               )}
             </p>
             <h1 id="catalog-title">
-              {view === 'favorites' ? (
-                'Избранное'
-              ) : (
-                <>
-                  Прошёл майнор?
-                  <br />
-                  Расскажи, как было
-                </>
-              )}
+              Прошёл майнор?
+              <br />
+              Расскажи, как было
             </h1>
-            {view === 'disciplines' ? (
-              <Button className={styles.heroReviewButton} href={reviewFormHref()} size="l">
-                <Icon icon={Pencil} size={18} />
-                Оставить отзыв
-              </Button>
-            ) : (
-              <button
-                type="button"
-                className={styles.heroReviewLink}
-                onClick={() => {
-                  if (favoriteItems.length)
-                    document.getElementById('catalog-results')?.scrollIntoView({ block: 'start' });
-                  else changeView('disciplines');
-                }}
-              >
-                {favoriteItems.length ? 'Сравни и выбери свой' : 'Найди майнор и сохрани его'}{' '}
-                <Icon icon={ArrowRight} size={16} />
-              </button>
-            )}
+            <Button className={styles.heroReviewButton} href={reviewFormHref()} size="l">
+              <Icon icon={Pencil} size={18} />
+              Оставить отзыв
+            </Button>
           </div>
-          {view === 'favorites' ? (
-            <FavoriteHeroCards items={favoriteItems} />
-          ) : (
-            <HeroReviews
-              key={heroReviews.map((review) => review.id).join('|')}
-              reviews={heroReviews}
-              paused={heroHovered || heroFocused}
-            />
-          )}
+          <HeroReviews
+            key={heroReviews.map((review) => review.id).join('|')}
+            reviews={heroReviews}
+            paused={heroHovered || heroFocused}
+          />
         </section>
-        {status === 'ready' && view === 'disciplines' && account.favoritesStatus === 'error' && (
-          <div className={styles.notice} role="alert">
-            <p>Не удалось загрузить избранное. {errorMessage(account.favoritesError)}</p>
-            {isUnauthorized(account.favoritesError) ? (
-              <Button href="/" variant="secondary">
-                Войти
-              </Button>
-            ) : (
-              <Button variant="secondary" onClick={account.retry}>
-                Повторить
-              </Button>
-            )}
-          </div>
-        )}
 
         <div className={styles.filterRow}>
           <SearchField
@@ -232,7 +148,7 @@ export function CatalogPage() {
           />
           <CatalogFilterBar filters={filters} onChange={updateFilters} />
         </div>
-        {!loading && !viewError && (
+        {status === 'ready' && (
           <p className={styles.resultCount} role="status">
             {minorCount(filtered.length)}
           </p>
@@ -241,27 +157,27 @@ export function CatalogPage() {
           id="catalog-results"
           className={styles.results}
           aria-label="Майноры"
-          aria-busy={loading}
+          aria-busy={status === 'loading'}
         >
-          {loading ? (
+          {status === 'loading' ? (
             <>
               <p className={styles.loadingMessage} role="status">
                 Ищем подходящие майноры…
               </p>
               <CatalogSkeleton />
             </>
-          ) : viewError ? (
+          ) : status === 'error' ? (
             <div className={styles.empty}>
               <h2>
-                {isUnauthorized(viewError) ? 'Войдите в аккаунт' : 'Не удалось загрузить список'}
+                {isUnauthorized(catalogError) ? 'Войдите в аккаунт' : 'Не удалось загрузить список'}
               </h2>
-              <p>{errorMessage(viewError)}</p>
-              {isUnauthorized(viewError) ? (
+              <p>{errorMessage(catalogError)}</p>
+              {isUnauthorized(catalogError) ? (
                 <Button href="/" variant="secondary">
                   На страницу входа
                 </Button>
               ) : (
-                <Button variant="secondary" onClick={status === 'error' ? retry : account.retry}>
+                <Button variant="secondary" onClick={retry}>
                   Повторить загрузку
                 </Button>
               )}
@@ -274,44 +190,20 @@ export function CatalogPage() {
                   tabIndex={-1}
                   ref={index === visibleCount - PAGE_SIZE ? loadMoreFocus : undefined}
                 >
-                  <CatalogCard
-                    item={item}
-                    favorite={favorites.includes(item.id)}
-                    favoriteDisabled={
-                      account.favoritesStatus !== 'ready' || account.pendingIds.includes(item.id)
-                    }
-                    onFavorite={() => void toggleFavorite(item.id)}
-                  />
+                  <CatalogCard item={item} />
                 </li>
               ))}
             </ul>
           ) : (
             <div className={styles.empty}>
-              <Icon
-                icon={view === 'favorites' && !source.length ? Heart : Search}
-                size={24}
-                className={styles.emptyIcon}
-              />
-              <h2>
-                {view === 'favorites' && !source.length
-                  ? 'Сохраните то, что интересно'
-                  : 'Пока ничего не нашлось'}
-              </h2>
+              <Icon icon={Search} size={24} className={styles.emptyIcon} />
+              <h2>Пока ничего не нашлось</h2>
               <p>
-                {view === 'favorites' && !source.length
-                  ? 'Нажмите на сердечко в карточке, чтобы добавить сюда майнор.'
-                  : 'Попробуйте другое название или уберите часть фильтров. Иногда достаточно одного слова.'}
+                Попробуйте другое название или уберите часть фильтров. Иногда достаточно одного
+                слова.
               </p>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  resetFilters();
-                  if (view === 'favorites' && !source.length) changeView('disciplines');
-                }}
-              >
-                {view === 'favorites' && !source.length
-                  ? 'Посмотреть майноры'
-                  : 'Сбросить поиск и фильтры'}
+              <Button variant="secondary" onClick={resetFilters}>
+                Сбросить поиск и фильтры
               </Button>
             </div>
           )}

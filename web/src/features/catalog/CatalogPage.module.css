@@ -2,7 +2,6 @@
   --hero-start: #fff2e9;
   --hero-end: #f0edbc;
   --catalog-card: var(--surface);
-  --favorite-color: #e93e4d;
 
   min-height: 100vh;
   background: var(--bg);
@@ -13,7 +12,6 @@
   --hero-start: #10232d;
   --hero-end: #21183f;
   --catalog-card: var(--surface);
-  --favorite-color: #ff6474;
 }
 
 .header,
@@ -41,30 +39,25 @@
   color: var(--logo);
 }
 .nav {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(128px, 1fr));
+  display: flex;
   align-self: stretch;
-  gap: 8px;
 }
 .navItem {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  min-width: 128px;
   padding: 0 16px;
-  border: 0;
-  background: none;
-  color: var(--text-2);
+  color: var(--text);
   font: 600 16px/1.4 var(--font-body);
   white-space: nowrap;
-  cursor: pointer;
   text-decoration: none;
 }
-.navItem:hover,
-.navActive {
+.navItem:hover {
   color: var(--text);
 }
-.navActive::after {
+.navItem::after {
   position: absolute;
   right: 0;
   bottom: -1px;
@@ -116,9 +109,9 @@
   box-shadow: var(--shadow-float);
   font-size: 14px;
 }
-.profileMenu p {
-  margin: 8px 0 16px;
-  color: var(--text-2);
+.profileMenu > strong {
+  display: block;
+  margin-bottom: 8px;
 }
 .main {
   padding-block: 24px 36px;
@@ -140,20 +133,6 @@
 .hero.heroCatalog {
   grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
   min-height: 244px;
-}
-.hero.heroFavorites {
-  --hero-start: #ffebef;
-  --hero-end: #f5e3f6;
-
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
-  min-height: 236px;
-}
-:global([data-theme='dark']) .hero.heroFavorites {
-  --hero-start: #321d2b;
-  --hero-end: #2a1f3e;
-}
-.hero.heroFavoritesEmpty {
-  grid-template-columns: minmax(0, 1fr);
 }
 .eyebrow {
   display: flex;
@@ -180,30 +159,6 @@
   margin-top: var(--space-5);
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-float);
-}
-.heroReviewLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  margin: 6px 0 -10px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--logo);
-  font: 700 14px/1.5 var(--font-body);
-  text-align: left;
-  cursor: pointer;
-}
-.heroReviewLink > svg {
-  flex: none;
-}
-.heroReviewLink:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.heroReviewLink:active {
-  transform: translateY(1px);
 }
 .heroIllustration {
   display: grid;
@@ -392,9 +347,8 @@
 .card {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
-  column-gap: 12px;
   row-gap: 18px;
   height: 100%;
   min-width: 0;
@@ -489,20 +443,6 @@
 .reviewCount svg {
   flex: none;
 }
-.card > .favorite {
-  position: relative;
-  z-index: 2;
-  align-self: center;
-  justify-self: end;
-  margin: -10px -10px -10px 0;
-  color: var(--text-2);
-}
-.card > .favoriteSelected {
-  color: var(--favorite-color);
-}
-.favoriteSelected svg {
-  fill: currentColor;
-}
 .more {
   display: flex;
   flex-direction: column;
@@ -586,11 +526,6 @@
   width: 60%;
   height: 16px;
 }
-.skeletonFavorite {
-  align-self: center;
-  width: 20px;
-  height: 20px;
-}
 @keyframes breathe {
   from {
     opacity: 0.45;
@@ -666,10 +601,6 @@
 }
 
 @media (max-width: 1099px) {
-  .hero.heroFavorites {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-6);
-  }
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -717,11 +648,9 @@
   }
   .nav {
     height: 48px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 4px;
   }
   .navItem {
-    padding-inline: 4px;
+    min-width: 96px;
     font-size: 14px;
   }
   .main {

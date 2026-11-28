@@ -1,6 +1,5 @@
 import { CATALOG_DIRECTIONS, type CatalogFilters, type Discipline } from './catalogTypes';
 
-export const FAVORITES_KEY = 'otz-catalog-demo-favorites';
 export const PAGE_SIZE = 6;
 
 export const DEFAULT_CATALOG_FILTERS: CatalogFilters = {
@@ -8,18 +7,6 @@ export const DEFAULT_CATALOG_FILTERS: CatalogFilters = {
   direction: 'all',
   sort: 'title',
 };
-
-/** Keep saved order; deleted or unavailable disciplines never become placeholder cards. */
-export function selectFavoriteDisciplines(
-  items: readonly Discipline[],
-  favorites: readonly string[],
-) {
-  const byId = new Map(items.map((item) => [item.id, item]));
-  return [...new Set(favorites)].flatMap((id) => {
-    const item = byId.get(id);
-    return item ? [item] : [];
-  });
-}
 
 const normalize = (value: string) => value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').trim();
 
@@ -40,17 +27,6 @@ export function selectDisciplines(items: readonly Discipline[], filters: Catalog
       if (filters.sort === 'rating') return (b.rating ?? -1) - (a.rating ?? -1) || tie;
       return tie;
     });
-}
-
-export function parseFavorites(raw: string | null): string[] {
-  try {
-    const value: unknown = JSON.parse(raw ?? '[]');
-    return Array.isArray(value)
-      ? [...new Set(value.filter((id): id is string => typeof id === 'string'))]
-      : [];
-  } catch {
-    return [];
-  }
 }
 
 export function minorCount(count: number) {

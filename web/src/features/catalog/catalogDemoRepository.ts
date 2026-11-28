@@ -1,6 +1,5 @@
 import { ApiError, CatalogStorageError } from '../../shared/api/client';
 import { DEMO_DISCIPLINES } from './catalogDemo';
-import { FAVORITES_KEY, parseFavorites } from './catalogModel';
 import type { CatalogRepository } from './catalogRepository';
 import { demoPublishedReviews, demoReviewInsights } from '../discipline/disciplineDemo';
 import { reviewSummary } from '../discipline/disciplineModel';
@@ -62,14 +61,6 @@ export function createDemoCatalogRepository(storage: DemoStorage): CatalogReposi
       const item = DEMO_DISCIPLINES.find((value) => value.id === id);
       const items = item ? demoPublishedReviews(item) : [];
       return { items, ...demoReviewInsights(items) };
-    },
-    listFavorites: async () => parseFavorites(read(FAVORITES_KEY)),
-    setFavorite: async (id, selected) => {
-      const ids = parseFavorites(read(FAVORITES_KEY));
-      write(
-        FAVORITES_KEY,
-        selected ? [...new Set([...ids, id])] : ids.filter((value) => value !== id),
-      );
     },
     createReview: async () => {
       if (hasSubmittedReview()) throw new ApiError(409, 'В этом браузере отзыв уже отправлен.');

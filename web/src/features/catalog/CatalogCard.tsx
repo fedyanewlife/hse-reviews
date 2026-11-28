@@ -1,26 +1,15 @@
 import type { CSSProperties } from 'react';
-import { Heart, MessageCircleMore, Star } from 'lucide-react';
+import { MessageCircleMore, Star } from 'lucide-react';
 import { DirectionMark } from '../../components/ui/DirectionMark';
 import { DIRECTIONS } from '../../components/ui/directions';
 import { Icon } from '../../components/ui/Icon';
-import { IconButton } from '../../components/ui/IconButton';
 import { cx } from '../../lib/cx';
 import { reviewCount } from './catalogModel';
 import { CATALOG_DIRECTIONS, type Discipline } from './catalogTypes';
 import styles from './CatalogPage.module.css';
 import { disciplineHref } from '../discipline/disciplineModel';
 
-export function CatalogCard({
-  item,
-  favorite,
-  onFavorite,
-  favoriteDisabled = false,
-}: {
-  item: Discipline;
-  favorite: boolean;
-  onFavorite: () => void;
-  favoriteDisabled?: boolean;
-}) {
+export function CatalogCard({ item }: { item: Discipline }) {
   return (
     <article
       className={styles.card}
@@ -60,14 +49,6 @@ export function CatalogCard({
           {item.reviewCount.toLocaleString('ru-RU')}
         </span>
       </div>
-      <IconButton
-        icon={Heart}
-        className={cx(styles.favorite, favorite && styles.favoriteSelected)}
-        aria-pressed={favorite}
-        disabled={favoriteDisabled}
-        onClick={onFavorite}
-        label={`${favorite ? 'Убрать из избранного' : 'В избранное'}: ${item.title}`}
-      />
     </article>
   );
 }
@@ -86,7 +67,6 @@ export function CatalogSkeleton() {
             <span className={styles.skeletonTitleShort} />
           </div>
           <span className={styles.skeletonMeta} />
-          <span className={styles.skeletonFavorite} />
         </div>
       ))}
     </div>

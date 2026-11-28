@@ -207,9 +207,8 @@
 .cardBody {
   display: grid;
   flex: 1;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
-  column-gap: calc(12px * var(--showcase-scale));
   row-gap: calc(18px * var(--showcase-scale));
   padding: calc(24px * var(--showcase-scale)) calc(24px * var(--showcase-scale))
     calc(22px * var(--showcase-scale));
@@ -274,27 +273,6 @@
 .cardMeta svg {
   width: calc(20px * var(--showcase-scale));
   height: calc(20px * var(--showcase-scale));
-}
-
-.cardActions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin: -8px -8px -8px 0;
-  color: var(--text-2);
-}
-
-.cardAction {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: calc(36px * var(--showcase-scale));
-  height: calc(36px * var(--showcase-scale));
-}
-
-.cardAction > svg {
-  width: calc(18px * var(--showcase-scale));
-  height: calc(18px * var(--showcase-scale));
 }
 
 @media (max-width: 1279px) {

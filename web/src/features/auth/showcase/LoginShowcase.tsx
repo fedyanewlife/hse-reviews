@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { Heart, MessageCircleMore, Star } from 'lucide-react';
+import { MessageCircleMore, Star } from 'lucide-react';
 import { DirectionMark } from '../../../components/ui/DirectionMark';
 import { DIRECTIONS } from '../../../components/ui/directions';
 import { Icon } from '../../../components/ui/Icon';
@@ -162,11 +162,6 @@ function MinorCard({
           <span className={styles.metaItem}>
             <Icon icon={MessageCircleMore} size={20} />
             <span>{card.reviewCount}</span>
-          </span>
-        </span>
-        <span className={styles.cardActions}>
-          <span className={styles.cardAction}>
-            <Icon icon={Heart} size={18} />
           </span>
         </span>
       </div>

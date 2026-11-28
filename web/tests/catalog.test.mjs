@@ -156,58 +156,22 @@ test('unknown search returns an empty result and clearing it restores the catalo
   assert.equal(model.selectDisciplines(items, filters).length, items.length);
 });
 
-test('sorting does not mutate data and works on a favorites subset', () => {
+test('sorting does not mutate data and works on a subset', () => {
   const ids = items.map((item) => item.id);
   assert.equal(
     model.selectDisciplines(items, { ...filters, sort: 'reviews' })[0].id,
     'data-analysis',
   );
   assert.equal(model.selectDisciplines(items, { ...filters, sort: 'rating' })[0].id, 'ux-design');
-  const favorites = items.filter((item) => ['law', 'ux-design'].includes(item.id));
+  const subset = items.filter((item) => ['law', 'ux-design'].includes(item.id));
   assert.deepEqual(
-    model.selectDisciplines(favorites, { ...filters, sort: 'rating' }).map((item) => item.id),
+    model.selectDisciplines(subset, { ...filters, sort: 'rating' }).map((item) => item.id),
     ['ux-design', 'law'],
   );
   assert.deepEqual(
     items.map((item) => item.id),
     ids,
   );
-});
-
-test('favorite hero takes the first three saved disciplines and promotes the next after removal', () => {
-  const favorites = ['ux-design', 'data-analysis', 'missing-id', 'psychology', 'law', 'ux-design'];
-  const original = [...favorites];
-  const selected = model.selectFavoriteDisciplines(items, favorites);
-  assert.deepEqual(
-    selected.map((item) => item.id),
-    ['ux-design', 'data-analysis', 'psychology', 'law'],
-  );
-  assert.deepEqual(
-    selected.slice(0, 3).map((item) => item.id),
-    ['ux-design', 'data-analysis', 'psychology'],
-  );
-  assert.deepEqual(
-    model
-      .selectFavoriteDisciplines(
-        items,
-        favorites.filter((id) => id !== 'ux-design'),
-      )
-      .slice(0, 3)
-      .map((item) => item.id),
-    ['data-analysis', 'psychology', 'law'],
-  );
-  assert.deepEqual(model.selectFavoriteDisciplines(items, []), []);
-  assert.deepEqual(favorites, original);
-});
-
-test('bad or unavailable storage is recovered without crashing', () => {
-  for (const raw of [null, 'broken', 'null', '{}']) {
-    assert.deepEqual(model.parseFavorites(raw), []);
-  }
-  assert.deepEqual(model.parseFavorites('["law", "law", 42, null, "ux-design"]'), [
-    'law',
-    'ux-design',
-  ]);
 });
 
 test('Russian result and review counts use the correct forms', () => {
@@ -224,18 +188,12 @@ test('Russian result and review counts use the correct forms', () => {
   assert.equal(model.reviewCount(11), '11 отзывов');
 });
 
-test('cards reuse accessible icons and expose favorite state and the full faculty name', () => {
-  const html = renderToStaticMarkup(
-    createElement(CatalogCard, {
-      item: items[0],
-      favorite: true,
-      onFavorite() {},
-    }),
-  );
+test('cards link to the discipline and show the full faculty name and review count', () => {
+  const html = renderToStaticMarkup(createElement(CatalogCard, { item: items[0] }));
+  assert.match(html, /href="\/disciplines\/data-analysis"/);
   assert.match(html, /Интеллектуальный анализ данных/);
   assert.match(html, />Факультет компьютерных наук<\/span>/);
-  assert.match(html, /aria-pressed="true"/);
-  assert.match(html, /Убрать из избранного/);
+  assert.doesNotMatch(html, /<button\b/);
   assert.match(html, /128 отзывов/);
 });
 
@@ -314,26 +272,6 @@ test('API errors do not fall back to demo and a non-JSON 401 is recognized', asy
   );
 });
 
-test('favorites use idempotent server mutations rather than localStorage', async () => {
-  const calls = [];
-  const repository = api.createApiCatalogRepository({
-    fetcher: async (url, init) => {
-      calls.push([url, init.method]);
-      return init.method ? new Response(null, { status: 204 }) : json({ items: [42, 77] });
-    },
-  });
-  assert.deepEqual(await repository.listFavorites(), ['42', '77']);
-  await repository.setFavorite('42', true);
-  await repository.setFavorite('42', false);
-  assert.deepEqual(calls, [
-    ['/me/favorites', undefined],
-    ['/me/favorites/42', 'PUT'],
-    ['/me/favorites/42', 'DELETE'],
-  ]);
-  await assert.rejects(repository.setFavorite('demo-slug', true), apiErrors.ApiContractError);
-  assert.equal(calls.length, 3);
-});
-
 test('review POST matches the existing Go request body and confirms moderation status', async () => {
   const repository = api.createApiCatalogRepository({
     fetcher: async (url, init) => {
@@ -391,37 +329,32 @@ test('unrated disciplines stay visible in the catalog', () => {
     review_preview: null,
   });
   assert.equal(model.selectDisciplines([empty], filters).length, 1);
-  const html = renderToStaticMarkup(
-    createElement(CatalogCard, { item: empty, favorite: false, onFavorite() {} }),
-  );
+  const html = renderToStaticMarkup(createElement(CatalogCard, { item: empty }));
   assert.match(html, /Пока нет оценок/);
   assert.match(html, /0 отзывов/);
 });
 
-test('demo and API share the repository interface; demo writes stay in its own storage', async () => {
+test('demo review submission writes only its marker and handles unavailable storage', async () => {
   const data = new Map();
   const storage = {
     getItem: (key) => data.get(key) ?? null,
     setItem: (key, value) => data.set(key, value),
   };
   const repository = makeDemoRepository(storage);
-  await repository.setFavorite('ux-design', true);
-  await repository.setFavorite('ux-design', true);
-  assert.deepEqual(await repository.listFavorites(), ['ux-design']);
   assert.equal(await repository.createReview(reviewInput), 'local');
   assert.equal(data.get('otz-catalog-demo-reviews'), 'true');
   await assert.rejects(
     makeDemoRepository(storage).createReview({ ...reviewInput, disciplineId: '77' }),
     { status: 409 },
   );
-  assert.ok([...data.keys()].every((key) => key.includes('-demo-')));
+  assert.deepEqual([...data.keys()], ['otz-catalog-demo-reviews']);
   const blocked = makeDemoRepository({
     getItem: () => null,
     setItem: () => {
       throw new Error('quota');
     },
   });
-  await assert.rejects(blocked.setFavorite('law', true), apiErrors.CatalogStorageError);
+  await assert.rejects(blocked.createReview(reviewInput), apiErrors.CatalogStorageError);
 });
 
 test('existing demo reviews are reduced to a submission marker without resetting the limit', async () => {

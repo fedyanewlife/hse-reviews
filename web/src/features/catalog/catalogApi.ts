@@ -186,10 +186,6 @@ export function createApiCatalogRepository(options: ApiOptions = {}): CatalogRep
         summaryText: typeof result.summary === 'string' ? result.summary.trim() || null : null,
       };
     },
-    listFavorites: async (signal) => list(await request('/me/favorites', { signal })).map(id),
-    setFavorite: async (minorId, selected) => {
-      await request(`/me/favorites/${serverId(minorId)}`, { method: selected ? 'PUT' : 'DELETE' });
-    },
     createReview: async (input) => {
       const result = record(
         await request('/reviews', { method: 'POST', body: JSON.stringify(reviewPayload(input)) }),

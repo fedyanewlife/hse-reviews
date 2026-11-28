@@ -1,18 +1,16 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { ArrowDown, Heart, Pencil, Sparkles, Star, X } from 'lucide-react';
+import { ArrowDown, Pencil, Sparkles, Star, X } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { DirectionMark } from '../../components/ui/DirectionMark';
 import { DIRECTIONS } from '../../components/ui/directions';
 import { Icon } from '../../components/ui/Icon';
-import { IconButton } from '../../components/ui/IconButton';
 import { SelectMenu } from '../../components/ui/SelectMenu';
 import { cx } from '../../lib/cx';
-import { errorMessage, isUnauthorized } from '../../shared/api/client';
+import { errorMessage } from '../../shared/api/client';
 import { CatalogHeader } from '../catalog/CatalogHeader';
 import { isDemoCatalog } from '../catalog/catalogRepository';
 import { reviewCount } from '../catalog/catalogModel';
 import { useCatalog } from '../catalog/useCatalog';
-import { useCatalogAccount } from '../catalog/useCatalogAccount';
 import { useDisciplineReviews } from '../catalog/useDisciplineReviews';
 import { disciplineHref, reviewSummary, sortReviews } from './disciplineModel';
 import { DisciplineRatings } from './DisciplineRatings';
@@ -26,7 +24,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
   const catalog = useCatalog(null);
   const item = catalog.items.find((value) => value.id === disciplineId);
   const data = useDisciplineReviews(item?.id ?? null);
-  const account = useCatalogAccount();
   const [notice, setNotice] = useState('');
   const [themeId, setThemeId] = useState<string | null>(null);
   const [sort, setSort] = useState<ReviewSort>('helpful');
@@ -47,9 +44,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
   const related = catalog.items
     .filter((value) => value.id !== item?.id && value.direction === item?.direction)
     .slice(0, 3);
-  const favorite = account.favorites.includes(disciplineId);
-  const favoriteDisabled =
-    account.favoritesStatus !== 'ready' || account.pendingIds.includes(disciplineId);
 
   useEffect(() => {
     document.title = `${item?.title ?? 'Майнор'} — ОтзоВышка`;
@@ -70,13 +64,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
     return () => observer.disconnect();
   }, [item]);
 
-  async function toggleFavorite() {
-    try {
-      await account.toggleFavorite(disciplineId);
-    } catch (error) {
-      setNotice(errorMessage(error));
-    }
-  }
   function changeTheme(id: string | null) {
     setThemeId(id === themeId ? null : id);
     setLimit(6);
@@ -163,17 +150,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                     <Icon icon={Pencil} size={18} />
                     Оставить отзыв
                   </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => void toggleFavorite()}
-                    disabled={favoriteDisabled}
-                    aria-pressed={favorite}
-                    aria-label={favorite ? 'Убрать из избранного' : 'В избранное'}
-                    className={cx(styles.favoriteButton, favorite && styles.favoriteSelected)}
-                  >
-                    <Icon icon={Heart} size={18} />
-                    <span>{favorite ? 'В избранном' : 'В избранное'}</span>
-                  </Button>
                   <Button href="#reviews" variant="ghost">
                     Читать отзывы <Icon icon={ArrowDown} size={16} />
                   </Button>
@@ -224,20 +200,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                 )}
               </section>
             </section>
-            {account.favoritesStatus === 'error' && (
-              <div className={styles.notice} role="alert">
-                <p>Избранное недоступно. {errorMessage(account.favoritesError)}</p>
-                {isUnauthorized(account.favoritesError) ? (
-                  <Button href="/" variant="secondary">
-                    Войти
-                  </Button>
-                ) : (
-                  <Button variant="secondary" onClick={account.retry}>
-                    Повторить
-                  </Button>
-                )}
-              </div>
-            )}
             {data.status === 'error' ? (
               <section className={styles.state} id="reviews">
                 <h2>Отзывы не загрузились</h2>
@@ -383,15 +345,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
               role="region"
               aria-label="Действия с майнором"
             >
-              <IconButton
-                icon={Heart}
-                variant="secondary"
-                className={favorite ? styles.favoriteSelected : undefined}
-                label={favorite ? 'Убрать из избранного' : 'В избранное'}
-                aria-pressed={favorite}
-                disabled={favoriteDisabled}
-                onClick={() => void toggleFavorite()}
-              />
               <Button href={reviewFormHref(disciplineId)}>
                 <Icon icon={Pencil} size={17} />
                 Оставить отзыв
