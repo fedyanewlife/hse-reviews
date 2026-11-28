@@ -32,9 +32,7 @@ export function CatalogCard({
           size="s"
           label={CATALOG_DIRECTIONS.find((value) => value.id === item.direction)?.label}
         />
-        <span className={styles.faculty} title={item.faculty}>
-          {item.facultyLabel ?? item.faculty}
-        </span>
+        <span className={styles.faculty}>{item.faculty}</span>
       </div>
       <h2 className={cx(styles.cardTitle, item.title.length > 32 && styles.cardTitleLong)}>
         <a href={disciplineHref(item.id)}>{item.title}</a>

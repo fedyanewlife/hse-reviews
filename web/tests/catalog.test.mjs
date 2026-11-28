@@ -224,7 +224,7 @@ test('Russian result and review counts use the correct forms', () => {
   assert.equal(model.reviewCount(11), '11 отзывов');
 });
 
-test('cards reuse accessible icons and expose favorite state and faculty', () => {
+test('cards reuse accessible icons and expose favorite state and the full faculty name', () => {
   const html = renderToStaticMarkup(
     createElement(CatalogCard, {
       item: items[0],
@@ -233,7 +233,7 @@ test('cards reuse accessible icons and expose favorite state and faculty', () =>
     }),
   );
   assert.match(html, /Интеллектуальный анализ данных/);
-  assert.match(html, /title="Факультет компьютерных наук"/);
+  assert.match(html, />Факультет компьютерных наук<\/span>/);
   assert.match(html, /aria-pressed="true"/);
   assert.match(html, /Убрать из избранного/);
   assert.match(html, /128 отзывов/);
