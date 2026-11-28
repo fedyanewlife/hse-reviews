@@ -76,43 +76,6 @@
 .header .themeButton {
   border-radius: var(--radius-m);
 }
-.profile {
-  position: relative;
-}
-.profile summary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  list-style: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  background: var(--surface-subtle);
-  color: var(--logo);
-  font-weight: 700;
-  cursor: pointer;
-}
-.profile summary::-webkit-details-marker {
-  display: none;
-}
-.profileMenu {
-  position: absolute;
-  top: 54px;
-  right: 0;
-  z-index: 5;
-  width: 260px;
-  padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-l);
-  background: var(--surface);
-  box-shadow: var(--shadow-float);
-  font-size: 14px;
-}
-.profileMenu > strong {
-  display: block;
-  margin-bottom: 8px;
-}
 .main {
   padding-block: 24px 36px;
 }
@@ -739,10 +702,6 @@
   }
   .headerActions {
     gap: 2px;
-  }
-  .profile summary {
-    width: 40px;
-    height: 44px;
   }
   .hero h1 {
     font-size: 25px;

@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { Sun, UserRound } from 'lucide-react';
+import { LogOut, Sun } from 'lucide-react';
 import darkModeIcon from '../../assets/dark-mode.png';
-import { Button } from '../../components/ui/Button';
-import { Icon } from '../../components/ui/Icon';
 import { IconButton } from '../../components/ui/IconButton';
 import { errorMessage } from '../../shared/api/client';
 import { useTheme } from '../theme/useTheme';
@@ -17,10 +15,12 @@ export function CatalogHeader({ onError }: { onError: (message: string) => void 
     setLoggingOut(true);
     try {
       await catalogRepository.logout();
-      try {
-        sessionStorage.removeItem(reviewDraftStorageKey(false));
-      } catch {
-        /* Logout also works when browser storage is unavailable. */
+      if (!isDemoCatalog) {
+        try {
+          sessionStorage.removeItem(reviewDraftStorageKey(false));
+        } catch {
+          /* Logout also works when browser storage is unavailable. */
+        }
       }
       window.location.assign('/');
     } catch (error) {
@@ -46,24 +46,13 @@ export function CatalogHeader({ onError }: { onError: (message: string) => void 
           label={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
           onClick={toggleTheme}
         />
-        <details className={styles.profile}>
-          <summary aria-label="Профиль">
-            {isDemoCatalog ? (
-              <span aria-hidden="true">Г</span>
-            ) : (
-              <Icon icon={UserRound} size={20} />
-            )}
-          </summary>
-          <div className={styles.profileMenu}>
-            <strong>{isDemoCatalog ? 'Демо-профиль' : 'Профиль'}</strong>
-            <a href="/">Страница авторизации</a>
-            {!isDemoCatalog && (
-              <Button variant="ghost" disabled={loggingOut} onClick={() => void logout()}>
-                Выйти
-              </Button>
-            )}
-          </div>
-        </details>
+        <IconButton
+          icon={LogOut}
+          variant="secondary"
+          label="Выйти из аккаунта"
+          disabled={loggingOut}
+          onClick={() => void logout()}
+        />
       </div>
     </header>
   );
