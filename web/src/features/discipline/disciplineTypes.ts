@@ -13,14 +13,8 @@ export type PublishedReview = {
   helpfulCount: number | null;
 };
 export type ReviewSort = 'newest' | 'highest' | 'lowest';
-export type ReviewTheme = {
-  id: string;
-  label: string;
-  reviewIds: readonly string[];
-};
 export type DisciplineReviews = {
   items: readonly PublishedReview[];
-  themes: readonly ReviewTheme[];
 };
 
 export const METRIC_CRITERIA = [

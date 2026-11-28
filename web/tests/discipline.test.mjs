@@ -134,12 +134,11 @@ test('detail reviews use the existing endpoint with credentials and cancellation
       return new Response(JSON.stringify({ items: [dto] }), { status: 200 });
     },
   });
-  const { items, themes } = await repository.getDisciplineReviews('42', controller.signal);
+  const { items } = await repository.getDisciplineReviews('42', controller.signal);
   assert.equal(items[0].advice, dto.selection_advice);
-  assert.deepEqual(themes, []);
 });
 
-test('the review feed ignores summary text and keeps only distinct published sources for themes', async () => {
+test('the review feed returns all published reviews when the response includes summary and themes', async () => {
   const items = [dto, { ...dto, id: 8 }, { ...dto, id: 9 }];
   const repository = api.createApiCatalogRepository({
     fetcher: async () =>
@@ -147,42 +146,29 @@ test('the review feed ignores summary text and keeps only distinct published sou
         JSON.stringify({
           items,
           summary: '  Практические задания помогают разобраться в материале.  ',
-          themes: [
-            { id: 'practice', label: ' Практика ', review_ids: [7, 99, 7, 8, '9'] },
-            { id: 'practice', label: 'Дубликат', review_ids: [7, 9] },
-            { id: 'singleton', label: 'Один источник', review_ids: [7, 7, 99] },
-            { id: 'invalid', label: ' ', review_ids: [7, 8] },
-            null,
-          ],
+          themes: [{ id: 'practice', label: 'Практика', review_ids: [7, 8] }],
         }),
         { status: 200 },
       ),
   });
   const feed = await repository.getDisciplineReviews('42');
-  assert.equal(feed.items.length, 3);
-  assert.deepEqual(feed.themes, [{ id: 'practice', label: 'Практика', reviewIds: ['7', '8'] }]);
-  assert.deepEqual(Object.keys(feed).sort(), ['items', 'themes']);
+  assert.deepEqual(Object.keys(feed), ['items']);
+  assert.deepEqual(
+    feed.items.map((item) => item.id),
+    ['7', '8', '9'],
+  );
 });
 
 test('demo catalog ratings and counts agree with the detail review dataset for every discipline', async () => {
   const items = await demoRepository.listDisciplines();
   for (const item of items) {
-    const { items: reviews, themes } = await demoRepository.getDisciplineReviews(item.id);
+    const { items: reviews } = await demoRepository.getDisciplineReviews(item.id);
     const summary = model.reviewSummary(reviews);
     assert.equal(item.reviewCount, summary.count);
     assert.equal(item.rating, Number(summary.averages.recommendation.toFixed(1)));
     assert.equal(new Set(reviews.map((value) => value.id)).size, reviews.length);
-    for (const theme of themes) {
-      assert.ok(new Set(theme.reviewIds).size >= 2);
-      assert.ok(theme.reviewIds.every((id) => reviews.some((review) => review.id === id)));
-    }
   }
-  const { themes } = await demoRepository.getDisciplineReviews('data-analysis');
-  assert.ok(themes.some((theme) => theme.id === 'practice'));
-  assert.deepEqual(await demoRepository.getDisciplineReviews('missing'), {
-    items: [],
-    themes: [],
-  });
+  assert.deepEqual(await demoRepository.getDisciplineReviews('missing'), { items: [] });
 });
 
 test('review card shows criteria and advice without exposing the publication date', () => {

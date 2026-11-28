@@ -1,5 +1,5 @@
 import type { Discipline } from '../catalog/catalogTypes';
-import type { PublishedReview, ReviewTheme } from './disciplineTypes';
+import type { PublishedReview } from './disciplineTypes';
 
 // Synthetic survey answers for development, never returned by the API adapter.
 const experiences = [
@@ -23,52 +23,6 @@ const itTips = [
   'Часть материала придётся разбирать самостоятельно, помимо лекций и семинаров. Планируй время на практику.',
   'Машинное обучение начинается не сразу: в первых модулях больше работы с Python и данными.',
 ];
-
-const themePatterns = [
-  {
-    id: 'practice',
-    label: 'Практика',
-    pattern: /практик|практическ/iu,
-  },
-  {
-    id: 'workload',
-    label: 'Нагрузка',
-    pattern: /нагрузк|несколько часов|несколько вечеров|дедлайн|не откладывать/iu,
-  },
-  {
-    id: 'preparation',
-    label: 'Базовые знания',
-    pattern: /базов|основы|требовани[а-яё]* к подготовке/iu,
-  },
-  {
-    id: 'self-study',
-    label: 'Самостоятельная работа',
-    pattern: /самостоятельн/iu,
-  },
-  {
-    id: 'feedback',
-    label: 'Обратная связь',
-    pattern: /обратн[а-яё]+ связ/iu,
-  },
-  {
-    id: 'assessment',
-    label: 'Оценивание',
-    pattern: /оценива|экзамен|контрольн/iu,
-  },
-];
-
-export function demoReviewThemes(reviews: readonly PublishedReview[]): ReviewTheme[] {
-  return themePatterns
-    .map(({ id, label, pattern }) => ({
-      id,
-      label,
-      reviewIds: reviews
-        .filter(({ experience, advice }) => pattern.test(`${experience}\n${advice}`))
-        .map((review) => review.id),
-    }))
-    .filter(({ reviewIds }) => reviewIds.length > 1)
-    .sort((a, b) => b.reviewIds.length - a.reviewIds.length);
-}
 
 export function demoPublishedReviews(item: Discipline): PublishedReview[] {
   if (item.reviewCount === 0) return [];

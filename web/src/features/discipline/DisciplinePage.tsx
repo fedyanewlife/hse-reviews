@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { ArrowDown, Pencil, Star, X } from 'lucide-react';
+import { ArrowDown, Pencil, Star } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { DirectionMark } from '../../components/ui/DirectionMark';
 import { DIRECTIONS } from '../../components/ui/directions';
 import { Icon } from '../../components/ui/Icon';
 import { SelectMenu } from '../../components/ui/SelectMenu';
-import { cx } from '../../lib/cx';
 import { errorMessage } from '../../shared/api/client';
 import { CatalogHeader } from '../catalog/CatalogHeader';
 import { isDemoCatalog } from '../catalog/catalogRepository';
@@ -25,7 +24,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
   const item = catalog.items.find((value) => value.id === disciplineId);
   const data = useDisciplineReviews(item?.id ?? null);
   const [notice, setNotice] = useState('');
-  const [themeId, setThemeId] = useState<string | null>(null);
   const [sort, setSort] = useState<ReviewSort>('newest');
   const [limit, setLimit] = useState(6);
   const [requestedReview, setRequestedReview] = useState<{ id: string } | null>(null);
@@ -33,11 +31,7 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
   const heroActions = useRef<HTMLDivElement>(null);
   const voting = useHelpfulVotes(isDemoCatalog, setNotice);
   const summary = reviewSummary(data.items);
-  const theme = data.themes.find((value) => value.id === themeId);
-  const reviewItems = theme
-    ? data.items.filter((review) => theme.reviewIds.includes(review.id))
-    : data.items;
-  const sorted = sortReviews(reviewItems, sort);
+  const sorted = sortReviews(data.items, sort);
   const visible = sorted.slice(0, limit);
   const related = catalog.items
     .filter((value) => value.id !== item?.id && value.direction === item?.direction)
@@ -62,12 +56,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
     return () => observer.disconnect();
   }, [item]);
 
-  function changeTheme(id: string | null) {
-    setThemeId(id === themeId ? null : id);
-    setLimit(6);
-    document.getElementById('reviews')?.scrollIntoView({ block: 'start' });
-    document.getElementById('reviews-title')?.focus({ preventScroll: true });
-  }
   const sortOptions: { value: ReviewSort; label: string }[] = [
     { value: 'newest', label: 'Новые' },
     { value: 'highest', label: 'Выше оценка' },
@@ -212,36 +200,11 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
             ) : (
               <div className={styles.layout}>
                 <DisciplineRatings averages={summary.averages} />
-                {data.themes.length > 0 && (
-                  <section className={styles.panel} aria-labelledby="review-themes-title">
-                    <h2 id="review-themes-title">Темы отзывов</h2>
-                    <div className={styles.themeList}>
-                      {data.themes.map(({ id, label, reviewIds }) => (
-                        <button
-                          type="button"
-                          className={styles.themeChip}
-                          key={id}
-                          aria-pressed={id === theme?.id}
-                          aria-controls="reviews"
-                          aria-label={`${label}, ${reviewCount(reviewIds.length)}`}
-                          onClick={() => changeTheme(id)}
-                        >
-                          {label}
-                          <span className={styles.themeCount} aria-hidden="true">
-                            {reviewIds.length}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                )}
                 <section className={styles.reviews} id="reviews" aria-labelledby="reviews-title">
                   <div className={styles.reviewsToolbar}>
                     <div className={styles.sectionHeading}>
-                      <h2 id="reviews-title" tabIndex={-1}>
-                        Отзывы
-                      </h2>
-                      <span>{reviewItems.length}</span>
+                      <h2 id="reviews-title">Отзывы</h2>
+                      <span>{summary.count}</span>
                     </div>
                     <SelectMenu
                       value={sort}
@@ -253,17 +216,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                       label="Порядок отзывов"
                     />
                   </div>
-                  {theme && (
-                    <button
-                      type="button"
-                      className={cx(styles.themeChip, styles.activeTheme)}
-                      aria-label={`Сбросить тему «${theme.label}»`}
-                      onClick={() => changeTheme(null)}
-                    >
-                      {theme.label}
-                      <Icon icon={X} size={16} />
-                    </button>
-                  )}
                   <div className={styles.reviewList}>
                     {visible.map((review) => (
                       <DisciplineReviewCard

@@ -7,7 +7,7 @@ import {
   type ReviewStatus,
 } from './catalogTypes';
 import type { CatalogRepository } from './catalogRepository';
-import type { PublishedReview, CompletionStatus, ReviewTheme } from '../discipline/disciplineTypes';
+import type { PublishedReview, CompletionStatus } from '../discipline/disciplineTypes';
 
 type JsonRecord = Record<string, unknown>;
 function record(value: unknown): JsonRecord {
@@ -120,31 +120,6 @@ export function decodePublishedReview(value: unknown, disciplineId: string): Pub
   };
 }
 
-function decodeReviewThemes(value: unknown, reviews: readonly PublishedReview[]): ReviewTheme[] {
-  if (!Array.isArray(value)) return [];
-  const knownIds = new Set(reviews.map((review) => review.id));
-  const themes = new Map<string, ReviewTheme>();
-
-  for (const entry of value) {
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
-    const { id: rawId, label, review_ids: rawIds } = entry as JsonRecord;
-    if (typeof rawId !== 'string' || typeof label !== 'string' || !Array.isArray(rawIds)) continue;
-    const themeId = rawId.trim();
-    if (!themeId || !label.trim() || themes.has(themeId)) continue;
-    const reviewIds = [
-      ...new Set(
-        rawIds
-          .filter((reviewId): reviewId is number => typeof reviewId === 'number')
-          .map(String)
-          .filter((reviewId) => knownIds.has(reviewId)),
-      ),
-    ];
-    if (reviewIds.length >= 2) themes.set(themeId, { id: themeId, label: label.trim(), reviewIds });
-  }
-
-  return [...themes.values()];
-}
-
 export function reviewPayload(input: ReviewInput) {
   return {
     minor_id: serverId(input.disciplineId),
@@ -178,12 +153,8 @@ export function createApiCatalogRepository(options: ApiOptions = {}): CatalogRep
         };
       }),
     getDisciplineReviews: async (minorId, signal) => {
-      const result = record(await request(`/minors/${serverId(minorId)}/reviews`, { signal }));
-      const items = list(result).map((value) => decodePublishedReview(value, minorId));
-      return {
-        items,
-        themes: decodeReviewThemes(result.themes, items),
-      };
+      const result = await request(`/minors/${serverId(minorId)}/reviews`, { signal });
+      return { items: list(result).map((value) => decodePublishedReview(value, minorId)) };
     },
     createReview: async (input) => {
       const result = record(

@@ -238,45 +238,6 @@
   border-radius: inherit;
   background: var(--star);
 }
-.themeList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-top: var(--space-5);
-}
-.themeChip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  max-width: 100%;
-  min-height: var(--control-h);
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  background: var(--surface);
-  color: var(--text);
-  font: var(--weight-semibold) var(--type-sm)/var(--lh-sm) var(--font-body);
-  text-align: left;
-  overflow-wrap: anywhere;
-  cursor: pointer;
-}
-.themeChip:hover {
-  background: var(--surface-subtle);
-}
-.themeChip[aria-pressed='true'],
-.activeTheme {
-  border-color: var(--discipline-accent);
-  background: var(--discipline-tint);
-}
-.themeChip > svg,
-.themeCount {
-  flex: none;
-}
-.themeCount {
-  color: var(--text-2);
-  font-size: var(--type-xs);
-  font-variant-numeric: tabular-nums;
-}
 .textButton {
   display: inline-flex;
   align-items: center;
