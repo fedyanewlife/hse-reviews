@@ -33,13 +33,11 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
   const heroActions = useRef<HTMLDivElement>(null);
   const voting = useHelpfulVotes(isDemoCatalog, setNotice);
   const summary = reviewSummary(data.items);
-  const hasHelpful = data.items.some((review) => review.helpfulCount !== null);
-  const effectiveSort = !hasHelpful && sort === 'helpful' ? 'newest' : sort;
   const theme = data.themes.find((value) => value.id === themeId);
   const reviewItems = theme
     ? data.items.filter((review) => theme.reviewIds.includes(review.id))
     : data.items;
-  const sorted = sortReviews(reviewItems, effectiveSort, voting.votes);
+  const sorted = sortReviews(reviewItems, sort);
   const visible = sorted.slice(0, limit);
   const related = catalog.items
     .filter((value) => value.id !== item?.id && value.direction === item?.direction)
@@ -72,7 +70,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
   }
   const sortOptions: { value: ReviewSort; label: string }[] = [
     { value: 'newest', label: 'Новые' },
-    ...(hasHelpful ? [{ value: 'helpful' as const, label: 'Полезные' }] : []),
     { value: 'highest', label: 'Выше оценка' },
     { value: 'lowest', label: 'Ниже оценка' },
   ];
@@ -247,7 +244,7 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                       <span>{reviewItems.length}</span>
                     </div>
                     <SelectMenu
-                      value={effectiveSort}
+                      value={sort}
                       onChange={(value) => {
                         setSort(value);
                         setLimit(6);

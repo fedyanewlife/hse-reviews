@@ -75,13 +75,12 @@ test('sorting reviews does not modify the source data', () => {
     model.sortReviews(source, 'lowest').map((value) => value.id),
     ['4', '2', '3', '1'],
   );
-  assert.equal(model.sortReviews(source, 'helpful', ['3'])[0].id, '3');
   assert.deepEqual(
     source.map((value) => value.id),
     ['1', '2', '3', '4'],
   );
   const dates = [
-    review('a', 5, 'unknown', '2026-10-01T01:00:00+03:00'),
+    { ...review('a', 5, 'unknown', '2026-10-01T01:00:00+03:00'), helpfulCount: 10 },
     review('b', 5, 'unknown', '2026-09-30T23:00:00Z'),
   ];
   assert.equal(model.sortReviews(dates, 'newest')[0].id, 'b');

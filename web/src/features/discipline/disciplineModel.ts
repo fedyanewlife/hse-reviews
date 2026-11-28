@@ -42,21 +42,11 @@ export function reviewSummary(reviews: readonly PublishedReview[]) {
   };
 }
 
-export function sortReviews(
-  reviews: readonly PublishedReview[],
-  sort: ReviewSort,
-  votes: readonly string[] = [],
-) {
+export function sortReviews(reviews: readonly PublishedReview[], sort: ReviewSort) {
   return [...reviews].sort((a, b) => {
     const dateOrder =
       (b.createdAt ? Date.parse(b.createdAt) : -Infinity) -
         (a.createdAt ? Date.parse(a.createdAt) : -Infinity) || a.id.localeCompare(b.id);
-    if (sort === 'helpful')
-      return (
-        (b.helpfulCount ?? 0) +
-          Number(votes.includes(b.id)) -
-          ((a.helpfulCount ?? 0) + Number(votes.includes(a.id))) || dateOrder
-      );
     if (sort === 'highest') return b.ratings.recommendation - a.ratings.recommendation || dateOrder;
     if (sort === 'lowest') return a.ratings.recommendation - b.ratings.recommendation || dateOrder;
     return dateOrder;

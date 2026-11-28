@@ -12,7 +12,7 @@ export type PublishedReview = {
   createdAt: string | null;
   helpfulCount: number | null;
 };
-export type ReviewSort = 'newest' | 'helpful' | 'highest' | 'lowest';
+export type ReviewSort = 'newest' | 'highest' | 'lowest';
 export type ReviewTheme = {
   id: string;
   label: string;
