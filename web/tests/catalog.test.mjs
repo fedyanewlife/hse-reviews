@@ -8,12 +8,13 @@ let server;
 let model;
 let items;
 let CatalogCard;
+let CatalogFilterBar;
 let api;
 let apiErrors;
 let makeDemoRepository;
 let resolveCatalogMode;
 let heroCycle;
-const filters = { query: '', direction: 'all', sort: 'reviews' };
+let filters;
 
 before(async () => {
   server = await createServer({
@@ -21,10 +22,12 @@ before(async () => {
     appType: 'custom',
   });
   model = await server.ssrLoadModule('/src/features/catalog/catalogModel.ts');
+  filters = model.DEFAULT_CATALOG_FILTERS;
   ({ DEMO_DISCIPLINES: items } = await server.ssrLoadModule(
     '/src/features/catalog/catalogDemo.ts',
   ));
   ({ CatalogCard } = await server.ssrLoadModule('/src/features/catalog/CatalogCard.tsx'));
+  ({ CatalogFilterBar } = await server.ssrLoadModule('/src/features/catalog/CatalogFilterBar.tsx'));
   api = await server.ssrLoadModule('/src/features/catalog/catalogApi.ts');
   apiErrors = await server.ssrLoadModule('/src/shared/api/client.ts');
   ({ createDemoCatalogRepository: makeDemoRepository } = await server.ssrLoadModule(
@@ -84,15 +87,35 @@ test('short hero review lists stay stable without entering a replacement loop', 
   }
 });
 
-test('default first page follows the supplied mockup and the next page has different cards', () => {
+test('default catalog order is alphabetical and pagination has distinct cards', () => {
   const selected = model.selectDisciplines(items, filters);
   assert.deepEqual(
     selected.slice(0, model.PAGE_SIZE).map((item) => item.id),
-    ['data-analysis', 'management', 'psychology', 'law', 'ux-design', 'modern-art'],
+    [
+      'business-informatics',
+      'digital-law',
+      'data-analysis',
+      'literature',
+      'education',
+      'management',
+    ],
   );
   assert.equal(selected.length, 12);
   assert.equal(new Set(selected.map((item) => item.id)).size, 12);
   assert.equal(selected.slice(model.PAGE_SIZE).length, 6);
+});
+
+test('the catalog sort button shows the same label for every sort order', () => {
+  for (const sort of ['title', 'reviews', 'rating']) {
+    const markup = renderToStaticMarkup(
+      createElement(CatalogFilterBar, { filters: { ...filters, sort }, onChange() {} }),
+    );
+    const trigger = markup.match(
+      /<button\b[^>]*aria-label="Сортировка"[^>]*>[\s\S]*?<\/button>/,
+    )?.[0];
+    assert.match(trigger ?? '', />Сортировка<\/span>/);
+    assert.doesNotMatch(trigger, /По алфавиту|Больше отзывов|Выше рейтинг/);
+  }
 });
 
 test('search supports Russian case, multiple words, faculty abbreviations and direction names', () => {
@@ -105,7 +128,7 @@ test('search supports Russian case, multiple words, faculty abbreviations and di
   assert.equal(model.selectDisciplines(items, { ...filters, query: 'ФКН' }).length, 2);
   assert.deepEqual(
     model.selectDisciplines(items, { ...filters, query: 'общество' }).map((item) => item.id),
-    ['psychology', 'law', 'digital-law'],
+    ['digital-law', 'psychology', 'law'],
   );
 });
 
@@ -135,6 +158,10 @@ test('unknown search returns an empty result and clearing it restores the catalo
 
 test('sorting does not mutate data and works on a favorites subset', () => {
   const ids = items.map((item) => item.id);
+  assert.equal(
+    model.selectDisciplines(items, { ...filters, sort: 'reviews' })[0].id,
+    'data-analysis',
+  );
   assert.equal(model.selectDisciplines(items, { ...filters, sort: 'rating' })[0].id, 'ux-design');
   const favorites = items.filter((item) => ['law', 'ux-design'].includes(item.id));
   assert.deepEqual(

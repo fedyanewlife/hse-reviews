@@ -14,6 +14,7 @@ import { HeroReviews } from './HeroReviews';
 import { FavoriteHeroCards } from './FavoriteHeroCards';
 import { reviewFormHref } from '../review-form/reviewFormModel';
 import {
+  DEFAULT_CATALOG_FILTERS,
   minorCount,
   reviewCount,
   PAGE_SIZE,
@@ -23,12 +24,6 @@ import {
 import type { CatalogFilters, CatalogView } from './catalogTypes';
 import { useCatalog } from './useCatalog';
 import styles from './CatalogPage.module.css';
-
-const DEFAULT_FILTERS: CatalogFilters = {
-  query: '',
-  direction: 'all',
-  sort: 'reviews',
-};
 
 export function CatalogPage() {
   const preview = isDemoCatalog ? new URLSearchParams(window.location.search).get('state') : null;
@@ -44,7 +39,7 @@ export function CatalogPage() {
     document.title = `${title} — ОтзоВышка`;
   }, [view]);
   const [filters, setFilters] = useState<CatalogFilters>(() => ({
-    ...DEFAULT_FILTERS,
+    ...DEFAULT_CATALOG_FILTERS,
     query: preview === 'empty' ? 'Квантовая кулинария' : '',
   }));
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -107,7 +102,7 @@ export function CatalogPage() {
     setVisibleCount(PAGE_SIZE);
   }
   function resetFilters() {
-    setFilters({ ...DEFAULT_FILTERS });
+    setFilters({ ...DEFAULT_CATALOG_FILTERS });
     setVisibleCount(PAGE_SIZE);
   }
   function changeView(next: CatalogView) {

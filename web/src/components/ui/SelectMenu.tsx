@@ -19,6 +19,7 @@ export function SelectMenu<T extends string>({
   caption = 'Сначала:',
   className,
   triggerIcon,
+  triggerLabel,
   keepMounted = false,
 }: {
   value: T;
@@ -28,6 +29,7 @@ export function SelectMenu<T extends string>({
   caption?: string;
   className?: string;
   triggerIcon?: ReactNode;
+  triggerLabel?: string;
   keepMounted?: boolean;
 }) {
   const selectedOption = options.find((option) => option.value === value) ?? options[0];
@@ -84,7 +86,7 @@ export function SelectMenu<T extends string>({
         type="button"
         ref={trigger}
         className={styles.sortTrigger}
-        aria-label={`${label}: ${selectedOption.label.toLocaleLowerCase('ru-RU')}`}
+        aria-label={triggerLabel ?? `${label}: ${selectedOption.label.toLocaleLowerCase('ru-RU')}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={popupId}
@@ -96,7 +98,7 @@ export function SelectMenu<T extends string>({
         {caption && <span className={styles.sortCaption}>{caption}</span>}
         {triggerIcon ?? selectedOption.icon}
         <span className={styles.sortValue}>
-          {selectedOption.triggerLabel ?? selectedOption.label}
+          {triggerLabel ?? selectedOption.triggerLabel ?? selectedOption.label}
         </span>
         <Icon icon={ChevronDown} size={16} className={styles.sortChevron} />
       </button>

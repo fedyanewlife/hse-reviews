@@ -1,7 +1,6 @@
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { SelectMenu } from '../../components/ui/SelectMenu';
 import { DIRECTIONS } from '../../components/ui/directions';
-import { useMediaQuery } from '../../lib/useMediaQuery';
 import { CATALOG_DIRECTIONS, type CatalogFilters } from './catalogTypes';
 import styles from './CatalogFilterBar.module.css';
 
@@ -125,7 +124,6 @@ function DirectionFilter({ filters, onChange }: FilterBarProps) {
 }
 
 export function CatalogFilterBar({ filters, onChange }: FilterBarProps) {
-  const compact = useMediaQuery('(max-width: 400px)');
   return (
     <div className={styles.bar} role="group" aria-label="Фильтры и сортировка">
       <DirectionFilter filters={filters} onChange={onChange} />
@@ -133,15 +131,12 @@ export function CatalogFilterBar({ filters, onChange }: FilterBarProps) {
         value={filters.sort}
         className={styles.control}
         caption=""
+        triggerLabel="Сортировка"
         onChange={(sort) => onChange({ sort })}
         options={[
-          {
-            value: 'reviews',
-            label: 'Больше отзывов',
-            triggerLabel: compact ? 'По отзывам' : undefined,
-          },
-          { value: 'rating', label: 'Выше рейтинг' },
           { value: 'title', label: 'По алфавиту' },
+          { value: 'reviews', label: 'Больше отзывов' },
+          { value: 'rating', label: 'Выше рейтинг' },
         ]}
       />
     </div>

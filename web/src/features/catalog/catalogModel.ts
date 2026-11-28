@@ -3,6 +3,12 @@ import { CATALOG_DIRECTIONS, type CatalogFilters, type Discipline } from './cata
 export const FAVORITES_KEY = 'otz-catalog-demo-favorites';
 export const PAGE_SIZE = 6;
 
+export const DEFAULT_CATALOG_FILTERS: CatalogFilters = {
+  query: '',
+  direction: 'all',
+  sort: 'title',
+};
+
 /** Keep saved order; deleted or unavailable disciplines never become placeholder cards. */
 export function selectFavoriteDisciplines(
   items: readonly Discipline[],
