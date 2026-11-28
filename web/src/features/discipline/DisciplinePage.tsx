@@ -26,7 +26,7 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
   const data = useDisciplineReviews(item?.id ?? null);
   const [notice, setNotice] = useState('');
   const [themeId, setThemeId] = useState<string | null>(null);
-  const [sort, setSort] = useState<ReviewSort>('helpful');
+  const [sort, setSort] = useState<ReviewSort>('newest');
   const [limit, setLimit] = useState(6);
   const [requestedReview, setRequestedReview] = useState<{ id: string } | null>(null);
   const [heroPassed, setHeroPassed] = useState(false);
@@ -71,8 +71,8 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
     document.getElementById('reviews-title')?.focus({ preventScroll: true });
   }
   const sortOptions: { value: ReviewSort; label: string }[] = [
-    ...(hasHelpful ? [{ value: 'helpful' as const, label: 'Полезные' }] : []),
     { value: 'newest', label: 'Новые' },
+    ...(hasHelpful ? [{ value: 'helpful' as const, label: 'Полезные' }] : []),
     { value: 'highest', label: 'Выше оценка' },
     { value: 'lowest', label: 'Ниже оценка' },
   ];
