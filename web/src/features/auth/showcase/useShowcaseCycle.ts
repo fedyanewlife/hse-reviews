@@ -1,37 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMediaQuery } from '../../../lib/useMediaQuery';
 import {
   advanceCycle,
   INITIAL_DELAY_MS,
   initialCycleState,
-  PAUSED_POLL_MS,
   RESUME_DELAY_MS,
   staticCycleState,
   type CycleState,
 } from './showcaseCycle';
 
-/** Кадр, на котором карточка и все отзывы уже показаны: только его можно задержать паузой. */
-function isFullyShown(state: CycleState, bubbleCounts: readonly number[]) {
-  return state.phase === 'show' && state.visibleBubbles >= (bubbleCounts[state.index] ?? 0);
-}
-
-/**
- * Крутит сценарий витрины на таймерах.
- * Пока `paused`, полностью показанная карточка не сменяется; печать, стирание
- * и появление отзывов паузой не прерываются, чтобы анимация не замирала на полпути.
- */
-export function useShowcaseCycle(
-  queries: readonly string[],
-  bubbleCounts: readonly number[],
-  paused: boolean,
-) {
+/** Запускает сценарий витрины на таймерах. */
+export function useShowcaseCycle(queries: readonly string[], bubbleCounts: readonly number[]) {
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const [state, setState] = useState<CycleState>(initialCycleState);
-  const pausedRef = useRef(paused);
-
-  useEffect(() => {
-    pausedRef.current = paused;
-  }, [paused]);
 
   useEffect(() => {
     if (reducedMotion) return;
@@ -45,10 +26,6 @@ export function useShowcaseCycle(
     };
 
     function tick() {
-      if (pausedRef.current && isFullyShown(current, bubbleCounts)) {
-        schedule(PAUSED_POLL_MS);
-        return;
-      }
       const { next, delayMs } = advanceCycle(current, queries, bubbleCounts);
       current = next;
       setState(next);

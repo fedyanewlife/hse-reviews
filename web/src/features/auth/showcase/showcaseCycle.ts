@@ -13,7 +13,6 @@ export type CycleState = {
 };
 
 export const INITIAL_DELAY_MS = 700;
-export const PAUSED_POLL_MS = 200;
 export const RESUME_DELAY_MS = 300;
 
 export const initialCycleState: CycleState = {

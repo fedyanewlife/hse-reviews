@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 import { Heart, MessageCircleMore, Star } from 'lucide-react';
 import { DirectionMark } from '../../../components/ui/DirectionMark';
 import { DIRECTIONS } from '../../../components/ui/directions';
@@ -40,11 +40,10 @@ const ratingFormat = new Intl.NumberFormat('ru-RU', {
 
 /**
  * Декоративная витрина справа от формы входа: показывает, как выглядит поиск по каталогу.
- * Скрыта от скринридеров, на наведение мыши ставится на паузу.
+ * Скрыта от скринридеров.
  */
 export function LoginShowcase() {
-  const [paused, setPaused] = useState(false);
-  const { state, reducedMotion } = useShowcaseCycle(QUERIES, BUBBLE_COUNTS, paused);
+  const { state, reducedMotion } = useShowcaseCycle(QUERIES, BUBBLE_COUNTS);
 
   const cards = reducedMotion ? SHOWCASE_CARDS.slice(0, 1) : SHOWCASE_CARDS;
   const active = SHOWCASE_CARDS[state.index] ?? SHOWCASE_CARDS[0]!;
@@ -83,8 +82,6 @@ export function LoginShowcase() {
       className={styles.showcase}
       style={{ backgroundColor: DIRECTIONS[active.direction].bg }}
       aria-hidden="true"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
     >
       {cards.map((card) => (
         <span
