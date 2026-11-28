@@ -49,7 +49,7 @@ export function CatalogHeader({
       <nav className={styles.nav} aria-label="Основная навигация">
         {(
           [
-            { id: 'disciplines', label: 'Майноры' },
+            { id: 'disciplines', label: 'Каталог' },
             { id: 'favorites', label: 'Избранное' },
           ] as const
         ).map((tab) =>
