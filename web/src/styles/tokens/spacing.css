@@ -1,0 +1,35 @@
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  --radius-xs: 4px;
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 16px;
+  --radius-full: 999px;
+  --border-w: 1px;
+  --stripe-w: 6px;
+  --stripe-w-lg: 10px;
+
+  --control-h-s: 32px;
+  --control-h: 44px;
+  --control-h-l: 52px;
+
+  --container: 1240px;
+  --page-pad: 100px;
+  --page-pad-m: 16px;
+
+  --shadow-float: 0 8px 24px rgba(23, 23, 28, 0.12), 0 0 0 1px rgba(23, 23, 28, 0.06);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+}
