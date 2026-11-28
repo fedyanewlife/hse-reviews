@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { ArrowDown, Pencil, Sparkles, Star, X } from 'lucide-react';
+import { ArrowDown, Pencil, Star, X } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { DirectionMark } from '../../components/ui/DirectionMark';
 import { DIRECTIONS } from '../../components/ui/directions';
@@ -150,9 +150,6 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                     <Icon icon={Pencil} size={18} />
                     Оставить отзыв
                   </Button>
-                  <Button href="#reviews" variant="ghost">
-                    Читать отзывы <Icon icon={ArrowDown} size={16} />
-                  </Button>
                 </div>
               </div>
               <section
@@ -177,11 +174,11 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
                       maximumFractionDigits: 1,
                     }) ?? '—'}
                   </span>
-                  <a href="#reviews">
+                  <span className={styles.reviewTotal}>
                     {data.status === 'loading'
                       ? 'Загружаем отзывы…'
                       : reviewCount(data.status === 'ready' ? summary.count : item.reviewCount)}
-                  </a>
+                  </span>
                 </div>
                 {summary.count > 0 && (
                   <ol className={styles.distribution} aria-label="Распределение рекомендаций">
@@ -218,40 +215,27 @@ export function DisciplinePage({ disciplineId }: { disciplineId: string }) {
             ) : (
               <div className={styles.layout}>
                 <DisciplineRatings averages={summary.averages} />
-                {(data.summaryText || data.themes.length > 0) && (
-                  <section className={styles.panel} aria-labelledby="review-summary-title">
-                    <div className={styles.reviewSummaryHeader}>
-                      <h2 id="review-summary-title">Что говорят студенты</h2>
-                      {data.summaryText && (
-                        <span className={styles.reviewSummaryLabel}>
-                          <Icon icon={Sparkles} size={15} />
-                          Сгенерировано ИИ
-                        </span>
-                      )}
+                {data.themes.length > 0 && (
+                  <section className={styles.panel} aria-labelledby="review-themes-title">
+                    <h2 id="review-themes-title">Темы отзывов</h2>
+                    <div className={styles.themeList}>
+                      {data.themes.map(({ id, label, reviewIds }) => (
+                        <button
+                          type="button"
+                          className={styles.themeChip}
+                          key={id}
+                          aria-pressed={id === theme?.id}
+                          aria-controls="reviews"
+                          aria-label={`${label}, ${reviewCount(reviewIds.length)}`}
+                          onClick={() => changeTheme(id)}
+                        >
+                          {label}
+                          <span className={styles.themeCount} aria-hidden="true">
+                            {reviewIds.length}
+                          </span>
+                        </button>
+                      ))}
                     </div>
-                    {data.summaryText && (
-                      <p className={styles.reviewSummaryText}>{data.summaryText}</p>
-                    )}
-                    {data.themes.length > 0 && (
-                      <div className={styles.themeList} role="group" aria-label="Темы отзывов">
-                        {data.themes.map(({ id, label, reviewIds }) => (
-                          <button
-                            type="button"
-                            className={styles.themeChip}
-                            key={id}
-                            aria-pressed={id === theme?.id}
-                            aria-controls="reviews"
-                            aria-label={`${label}, ${reviewCount(reviewIds.length)}`}
-                            onClick={() => changeTheme(id)}
-                          >
-                            {label}
-                            <span className={styles.themeCount} aria-hidden="true">
-                              {reviewIds.length}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </section>
                 )}
                 <section className={styles.reviews} id="reviews" aria-labelledby="reviews-title">

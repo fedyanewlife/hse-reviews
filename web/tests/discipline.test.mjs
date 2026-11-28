@@ -135,16 +135,12 @@ test('detail reviews use the existing endpoint with credentials and cancellation
       return new Response(JSON.stringify({ items: [dto] }), { status: 200 });
     },
   });
-  const { items, themes, summaryText } = await repository.getDisciplineReviews(
-    '42',
-    controller.signal,
-  );
+  const { items, themes } = await repository.getDisciplineReviews('42', controller.signal);
   assert.equal(items[0].advice, dto.selection_advice);
   assert.deepEqual(themes, []);
-  assert.equal(summaryText, null);
 });
 
-test('review themes keep only distinct IDs of published source reviews', async () => {
+test('the review feed ignores summary text and keeps only distinct published sources for themes', async () => {
   const items = [dto, { ...dto, id: 8 }, { ...dto, id: 9 }];
   const repository = api.createApiCatalogRepository({
     fetcher: async () =>
@@ -166,7 +162,7 @@ test('review themes keep only distinct IDs of published source reviews', async (
   const feed = await repository.getDisciplineReviews('42');
   assert.equal(feed.items.length, 3);
   assert.deepEqual(feed.themes, [{ id: 'practice', label: 'Практика', reviewIds: ['7', '8'] }]);
-  assert.equal(feed.summaryText, 'Практические задания помогают разобраться в материале.');
+  assert.deepEqual(Object.keys(feed).sort(), ['items', 'themes']);
 });
 
 test('demo catalog ratings and counts agree with the detail review dataset for every discipline', async () => {
@@ -182,13 +178,11 @@ test('demo catalog ratings and counts agree with the detail review dataset for e
       assert.ok(theme.reviewIds.every((id) => reviews.some((review) => review.id === id)));
     }
   }
-  const { themes, summaryText } = await demoRepository.getDisciplineReviews('data-analysis');
+  const { themes } = await demoRepository.getDisciplineReviews('data-analysis');
   assert.ok(themes.some((theme) => theme.id === 'practice'));
-  assert.match(summaryText, /практические задания/iu);
   assert.deepEqual(await demoRepository.getDisciplineReviews('missing'), {
     items: [],
     themes: [],
-    summaryText: null,
   });
 });
 

@@ -1,7 +1,7 @@
 import { ApiError, CatalogStorageError } from '../../shared/api/client';
 import { DEMO_DISCIPLINES } from './catalogDemo';
 import type { CatalogRepository } from './catalogRepository';
-import { demoPublishedReviews, demoReviewInsights } from '../discipline/disciplineDemo';
+import { demoPublishedReviews, demoReviewThemes } from '../discipline/disciplineDemo';
 import { reviewSummary } from '../discipline/disciplineModel';
 
 const REVIEW_MARKER_KEY = 'otz-catalog-demo-reviews';
@@ -60,7 +60,7 @@ export function createDemoCatalogRepository(storage: DemoStorage): CatalogReposi
     getDisciplineReviews: async (id) => {
       const item = DEMO_DISCIPLINES.find((value) => value.id === id);
       const items = item ? demoPublishedReviews(item) : [];
-      return { items, ...demoReviewInsights(items) };
+      return { items, themes: demoReviewThemes(items) };
     },
     createReview: async () => {
       if (hasSubmittedReview()) throw new ApiError(409, 'В этом браузере отзыв уже отправлен.');

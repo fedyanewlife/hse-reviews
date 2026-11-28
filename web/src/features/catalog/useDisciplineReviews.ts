@@ -8,7 +8,7 @@ type ReviewState = DisciplineReviews & {
   error: unknown;
 };
 
-const emptyReviews = { items: [], themes: [], summaryText: null } satisfies DisciplineReviews;
+const emptyReviews = { items: [], themes: [] } satisfies DisciplineReviews;
 
 export function useDisciplineReviews(id: string | null) {
   const [state, setState] = useState<ReviewState>({

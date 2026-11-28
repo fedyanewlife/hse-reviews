@@ -21,7 +21,6 @@ export type ReviewTheme = {
 export type DisciplineReviews = {
   items: readonly PublishedReview[];
   themes: readonly ReviewTheme[];
-  summaryText: string | null;
 };
 
 export const METRIC_CRITERIA = [

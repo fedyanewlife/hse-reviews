@@ -183,7 +183,6 @@ export function createApiCatalogRepository(options: ApiOptions = {}): CatalogRep
       return {
         items,
         themes: decodeReviewThemes(result.themes, items),
-        summaryText: typeof result.summary === 'string' ? result.summary.trim() || null : null,
       };
     },
     createReview: async (input) => {
